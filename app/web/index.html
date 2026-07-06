@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flowea Maintenance</title>
+<style>
+  :root{
+    --bg:#0b1220; --bg2:#0e1626; --surface:#131c2b; --surface2:#1a2536;
+    --line:#243246; --line2:#2f4055; --text:#e6edf6; --muted:#8295ad; --muted2:#5c6e85;
+    --teal:#2dd4bf; --teal-d:#0f766e; --sky:#38bdf8; --violet:#a78bfa;
+    --emerald:#34d399; --amber:#fbbf24; --rose:#fb7185;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.45}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  #root{min-height:100%}
+  a{color:inherit}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,select{font-family:inherit;font-size:14px}
+  .eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);font-weight:700}
+  .muted{color:var(--muted)} .muted2{color:var(--muted2)}
+  .center{display:grid;place-items:center;min-height:100%}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--teal);color:#04201c;font-weight:700;padding:11px 16px;border-radius:11px;transition:filter .15s;font-size:14px}
+  .btn:hover{filter:brightness(1.08)} .btn:disabled{background:#1e2a3b;color:#4a5b72;cursor:not-allowed;filter:none}
+  .btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--text);font-weight:600}
+  .btn.ghost:hover{border-color:var(--teal);color:var(--teal)}
+  .btn.sm{padding:7px 11px;font-size:13px;border-radius:9px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:8px;border:1px solid}
+  .chip .dot{width:7px;height:7px;border-radius:50%}
+  .ok{color:var(--emerald);border-color:#10663f;background:#0c3326}
+  .ok .dot{background:var(--emerald)}
+  .due_soon{color:var(--amber);border-color:#7a5a12;background:#33270a}
+  .due_soon .dot{background:var(--amber)}
+  .overdue{color:var(--rose);border-color:#7a2030;background:#330f17}
+  .overdue .dot{background:var(--rose)}
+  .field label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:5px;font-weight:700}
+  .field input,.field select{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:10px;padding:10px 12px;color:var(--text);outline:none}
+  .field input:focus,.field select:focus{border-color:var(--teal)}
+  .row{display:flex;gap:10px;align-items:center}
+  .grid{display:grid;gap:12px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .kpi .n{font-size:30px;font-weight:800;font-feature-settings:"tnum";margin-top:6px}
+  .kpi .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);font-weight:700;padding:11px 14px;border-bottom:1px solid var(--line)}
+  td{padding:13px 14px;border-bottom:1px solid #1b2738}
+  tr:hover td{background:#16202f}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 9px;border-radius:8px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line2);padding:11px 16px;border-radius:11px;display:flex;gap:8px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:60;font-size:14px}
+  .topbar{position:sticky;top:0;z-index:30;background:rgba(11,18,32,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 18px}
+  .tabbtn{padding:13px 12px;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+  .tabbtn.active{color:var(--teal);border-bottom-color:var(--teal)}
+  .phone{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:30px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .scanframe{position:relative;border-radius:16px;border:1px solid var(--line2);aspect-ratio:1;background:repeating-linear-gradient(45deg,#0b1220,#0b1220 12px,#0e1626 12px,#0e1626 24px);overflow:hidden}
+  .scanframe .box{position:absolute;inset:30px;border:2px solid var(--teal);border-radius:14px}
+  .scanframe .line{position:absolute;left:30px;right:30px;top:50%;height:2px;background:var(--teal);box-shadow:0 0 12px var(--teal);animation:scan 2s ease-in-out infinite}
+  @keyframes scan{0%,100%{top:30%}50%{top:70%}}
+  .seg{display:inline-flex;gap:6px}
+  .seg button{border:1px solid var(--line2);color:var(--muted);border-radius:9px;padding:6px 11px;font-size:13px;font-weight:600}
+  .seg button.on-yes{background:#0c3326;border-color:#10663f;color:var(--emerald)}
+  .seg button.on-no{background:#330f17;border-color:#7a2030;color:var(--rose)}
+  .seg button.on-na{background:#222e3f;border-color:var(--line2);color:var(--text)}
+  .item{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .navbar{border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface)}
+  .navbar button{padding:12px;font-size:11px;color:var(--muted2);display:flex;flex-direction:column;align-items:center;gap:4px}
+  .navbar button.active{color:var(--teal)}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:18px;z-index:50}
+  .bar{height:9px;border-radius:5px;background:#1b2738;overflow:hidden}
+  .bar > span{display:block;height:100%}
+  .spin{width:22px;height:22px;border:3px solid var(--line2);border-top-color:var(--teal);border-radius:50%;animation:sp 0.7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  svg.ic{width:1em;height:1em;vertical-align:-0.125em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div id="root"><div class="center"><div class="spin"></div></div></div>
+
+<script>
+/* ============ tiny helpers ============ */
+const $ = (id) => document.getElementById(id);
+const el = (html) => { const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; };
+const esc = (s) => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtDate = (d) => d? new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+const dueText = (s)=>{ if(!s) return ''; const n=s.days_until; if(n<0) return Math.abs(n)+'d overdue'; if(n===0) return 'Due today'; return 'Due in '+n+'d'; };
+const FREQ_LABEL={'1M':'Monthly','3M':'Quarterly','6M':'Half-yearly','12M':'Yearly'};
+
+/* minimal inline icons */
+const IC = {
+  wrench:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.1 2.1-2.4-.6-.6-2.4z"/>',
+  scan:'<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M3 12h18"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  alert:'<path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  chart:'<path d="M3 3v18h18M7 16V9M12 16V5M17 16v-7"/>',
+  cog:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 4.6a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  back:'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+  out:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  qr:'<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM21 14v7M17 21h4"/>',
+  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z M3 8l9 5 9-5M12 13v8"/>',
+  pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/>',
+  cam:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>', x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  print:'<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/>',
+  reset:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/>',
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  trash:'<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  save:'<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  doc:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+};
+const icon = (n,sz='1em') => `<svg class="ic" style="width:${sz};height:${sz}" viewBox="0 0 24 24">${IC[n]||''}</svg>`;
+
+/* ============ API client (same origin → no CORS) ============ */
+const API = {
+  get token(){ return localStorage.getItem('flw_at'); },
+  get refresh(){ return localStorage.getItem('flw_rt'); },
+  set(at,rt){ localStorage.setItem('flw_at',at); if(rt) localStorage.setItem('flw_rt',rt); },
+  clear(){ localStorage.removeItem('flw_at'); localStorage.removeItem('flw_rt'); },
+  async call(path,{method='GET',body,auth=true,retry=true}={}){
+    const headers={}; if(body) headers['Content-Type']='application/json';
+    if(auth && this.token) headers['Authorization']='Bearer '+this.token;
+    const res=await fetch(path,{method,headers,body:body?JSON.stringify(body):undefined});
+    if(res.status===401 && auth && retry && this.refresh){
+      const ok=await this.tryRefresh();
+      if(ok) return this.call(path,{method,body,auth,retry:false});
+    }
+    if(!res.ok){ let d; try{d=await res.json();}catch{d={detail:res.statusText};} throw new Error(d.detail||('HTTP '+res.status)); }
+    if(res.status===204) return null;
+    return res.json();
+  },
+  async tryRefresh(){
+    try{ const r=await fetch('/auth/refresh',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({refresh_token:this.refresh})});
+      if(!r.ok) return false; const d=await r.json(); this.set(d.access_token,d.refresh_token); return true;
+    }catch{ return false; }
+  }
+};
+
+/* ============ app state ============ */
+const App = { user:null, view:'login', tab:'dash', sel:null, draft:null, cache:{} };
+
+function toast(msg){ const t=el(`<div class="toast">${icon('check')} ${esc(msg)}</div>`); document.body.appendChild(t); setTimeout(()=>t.remove(),2200); }
+function render(node){ const r=$('root'); r.innerHTML=''; r.appendChild(node); }
+function loading(){ render(el(`<div class="center"><div class="spin"></div></div>`)); }
+
+/* ============ boot ============ */
+window.addEventListener('DOMContentLoaded', async ()=>{
+  if(API.token){
+    try{ App.user=await API.call('/auth/me'); routeByRole(); return; }catch{ API.clear(); }
+  }
+  showLogin();
+});
+
+function routeByRole(){
+  const r=App.user.role;
+  if(r==='engineer') showEngineer();
+  else showPortal(r);
+}
+
+/* ============ LOGIN ============ */
+function showLogin(err){
+  const n=el(`<div class="center" style="padding:24px">
+    <div style="width:100%;max-width:380px">
+      <div class="row" style="margin-bottom:18px">
+        <div style="width:44px;height:44px;border-radius:12px;background:#0c3a37;border:1px solid var(--teal-d);display:grid;place-items:center;color:var(--teal);font-size:22px">${icon('wrench')}</div>
+        <div><div style="font-size:20px;font-weight:800">Flowea Maintenance</div><div class="mono" style="font-size:12px;color:var(--muted2)">CMMS · v1</div></div>
+      </div>
+      <div class="card" style="padding:20px">
+        <div class="field" style="margin-bottom:12px"><label>Email</label><input id="em" type="email" value="admin@flowea.io" autocomplete="username"></div>
+        <div class="field" style="margin-bottom:16px"><label>Password</label><input id="pw" type="password" value="flowea123" autocomplete="current-password"></div>
+        <button class="btn" style="width:100%" id="loginBtn">Sign in</button>
+        <div id="err" style="color:var(--rose);font-size:13px;margin-top:10px;min-height:18px">${err?esc(err):''}</div>
+      </div>
+      <div class="muted2" style="font-size:12px;margin-top:14px;line-height:1.7">
+        Demo accounts (password <span class="mono">flowea123</span>):<br>
+        <span class="mono">admin@flowea.io</span> · <span class="mono">engineer@flowea.io</span><br>
+        <span class="mono">manager@flowea.io</span> · <span class="mono">customer@flowea.io</span> · <span class="mono">lead@flowea.io</span>
+      </div>
+    </div></div>`);
+  render(n);
+  const go=async()=>{
+    $('err').textContent=''; const email=$('em').value.trim(), password=$('pw').value;
+    $('loginBtn').disabled=true; $('loginBtn').textContent='Signing in…';
+    try{
+      const t=await API.call('/auth/login',{method:'POST',auth:false,body:{email,password}});
+      API.set(t.access_token,t.refresh_token);
+      App.user=await API.call('/auth/me');
+      routeByRole();
+    }catch(e){ $('loginBtn').disabled=false; $('loginBtn').textContent='Sign in'; $('err').textContent=e.message; }
+  };
+  $('loginBtn').onclick=go;
+  $('pw').addEventListener('keydown',e=>{ if(e.key==='Enter') go(); });
+}
+function logout(){ API.clear(); App.user=null; showLogin(); }
+
+/* ============ ENGINEER ============ */
+async function showEngineer(){
+  loading();
+  let summary, equip;
+  try{ [summary,equip]=await Promise.all([API.call('/dashboard/summary'),API.call('/equipment')]); }
+  catch(e){ return showLogin(e.message); }
+  App.cache.equip=equip;
+  engDash(summary,equip);
+}
+function engShell(inner, showNav){
+  return el(`<div class="center" style="padding:14px 10px;background:radial-gradient(100% 50% at 50% 0%, #102234, #0a0f1a 60%)">
+    <div class="phone" style="height:min(840px,94vh)">
+      <div style="display:flex;justify-content:space-between;padding:10px 18px 4px;font-size:11px;color:var(--muted2)" class="mono"><span>09:41</span><span>Flowea</span></div>
+      <div id="engbody" style="flex:1;overflow-y:auto;padding:0 16px 18px"></div>
+      ${showNav?`<div class="navbar">
+        <button class="active">${icon('list','18px')}Home</button>
+        <button onclick="engReports()">${icon('doc','18px')}Reports</button>
+        <button onclick="engSettings()">${icon('cog','18px')}Settings</button>
+      </div>`:''}
+    </div></div>`);
+}
+function engDash(s,equip){
+  const att=equip.filter(e=>e.schedule && e.schedule.status!=='ok')
+    .sort((a,b)=>a.schedule.days_until-b.schedule.days_until);
+  const shell=engShell(null,true); render(shell);
+  const b=$('engbody');
+  b.appendChild(el(`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-top:6px">
+      <div><div class="eyebrow">Dashboard</div><div style="font-size:18px;font-weight:800;margin-top:2px">Hello, ${esc(App.user.name.split(' ')[0])}</div></div>
+      <button class="muted" onclick="logout()" style="font-size:20px">${icon('out')}</button></div>`));
+  const scan=el(`<button style="width:100%;margin-top:14px;border:1px solid var(--teal-d);background:#0c2c2a;border-radius:18px;padding:18px;display:flex;gap:14px;align-items:center;text-align:left">
+      <div style="width:46px;height:46px;border-radius:13px;background:#0f3b38;display:grid;place-items:center;color:var(--teal);font-size:24px">${icon('scan')}</div>
+      <div><div style="font-weight:800;color:#bff3ec">Scan QR code</div><div style="font-size:12px;color:#6fbab1">Point camera at equipment label</div></div></button>`);
+  scan.onclick=()=>engScan(equip); b.appendChild(scan);
+  b.appendChild(el(`<div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:14px">
+      ${kpiMini(equip.length,'My tasks','--text')}${kpiMini(s.due_soon,'Due soon','--amber')}${kpiMini(s.overdue,'Overdue','--rose')}</div>`));
+  b.appendChild(el(`<div class="eyebrow" style="margin-top:22px">Needs attention</div>`));
+  const list=el(`<div class="grid" style="margin-top:10px"></div>`);
+  if(!att.length) list.appendChild(el(`<div class="muted" style="font-size:13px;padding:16px;text-align:center">All equipment is up to date.</div>`));
+  att.slice(0,6).forEach(e=>{ const it=el(`<button class="item" style="display:flex;gap:11px;align-items:center;text-align:left">
+      <span class="dot ${e.schedule.status}" style="width:9px;height:9px;border-radius:50%;background:var(--${e.schedule.status==='overdue'?'rose':'amber'})"></span>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">${esc(e.name)}</div><div class="mono muted2" style="font-size:11px">${esc(e.tag)}</div></div>
+      <span style="font-size:12px;font-weight:600;color:var(--${e.schedule.status==='overdue'?'rose':'amber'})">${dueText(e.schedule)}</span></button>`);
+    it.onclick=()=>engAsset(e); list.appendChild(it); });
+  b.appendChild(list);
+}
+function kpiMini(n,lab,col){ return `<div class="item" style="padding:12px"><div class="n mono" style="font-size:24px;font-weight:800;color:var(${col})">${n}</div><div class="muted2" style="font-size:11px">${lab}</div></div>`; }
+
+function engScan(equip){
+  const shell=engShell(null,false); render(shell); const b=$('engbody');
+  b.appendChild(backBar('Scan QR code',()=>engDash(App.cache.summary||{due_soon:0,overdue:0},equip)));
+  b.appendChild(el(`<div class="scanframe"><div class="box"></div><div class="line"></div>
+     <div style="position:absolute;bottom:10px;left:0;right:0;text-align:center;font-size:11px;color:#6fbab1" class="mono">scanning…</div></div>`));
+  b.appendChild(el(`<p class="muted2" style="font-size:12px;margin:14px 0 8px">Demo — tap a label to simulate a scan:</p>`));
+  const grid=el(`<div class="grid" style="grid-template-columns:1fr 1fr"></div>`);
+  equip.forEach(e=>{ const c=el(`<button class="item" style="display:flex;gap:9px;align-items:center;padding:9px"><canvas width="40" height="40" style="border-radius:5px;background:#fff"></canvas><span class="mono" style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.tag)}</span></button>`);
+    drawQR(c.querySelector('canvas'),e.qr_token,40); c.onclick=()=>engAssetByQr(e.qr_token); grid.appendChild(c); });
+  b.appendChild(grid);
+}
+async function engAssetByQr(token){
+  loading();
+  try{ const e=await API.call('/equipment/by-qr/'+encodeURIComponent(token)); engAsset(e); }
+  catch(err){ toast(err.message); showEngineer(); }
+}
+async function engAsset(e){
+  App.sel=e; const shell=engShell(null,false); render(shell); const b=$('engbody');
+  b.appendChild(backBar('Equipment details',()=>engScan(App.cache.equip)));
+  const s=e.schedule;
+  const specs=[['Location',e.location||'—'],['System',e.system||'—'],['Type',e.type||'—'],
+    ...(e.site_name?[['Site',e.site_name]]:[]),
+    ...(e.unit_type?[['CHW / DX',e.unit_type]]:[]),
+    ...(e.cooling_capacity?[['Cooling capacity',e.cooling_capacity]]:[]),
+    ['Last inspection',fmtDate(s&&s.last_done)]];
+  b.appendChild(el(`<div class="item" style="padding:16px">
+     <div style="display:flex;justify-content:space-between;align-items:flex-start">
+       <div><div class="mono" style="font-size:12px;color:var(--teal)">${esc(e.tag)}</div><div style="font-size:18px;font-weight:800;margin-top:2px">${esc(e.name)}</div></div>
+       <span class="chip ok">${esc(e.status)}</span></div>
+     <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px;font-size:14px">
+       ${specs.map(([l,v])=>detail(l,v)).join('')}</div></div>`));
+  b.appendChild(el(`<div class="eyebrow" style="margin-top:16px">Select maintenance to perform</div>`));
+  const grid=el(`<div class="grid" style="grid-template-columns:1fr 1fr;margin-top:10px"><div class="muted2" style="font-size:12px;grid-column:1/-1">Loading checklists…</div></div>`);
+  b.appendChild(grid);
+  let tpls=[]; try{ tpls=await API.call('/checklists/templates?equipment_type='+encodeURIComponent(e.type||'')); }catch{}
+  grid.innerHTML='';
+  if(!tpls.length){ grid.appendChild(el(`<div class="muted2" style="font-size:13px;grid-column:1/-1">No checklists defined for ${esc(e.type||'this type')} yet. Ask an admin to create one.</div>`)); }
+  tpls.forEach(t=>{ const due = s && s.frequency===t.frequency; const dueState = due ? s.status : null;
+    const card=el(`<button class="item" style="padding:13px;text-align:left;${due?'border-color:var(--teal);background:#0c2a28':''}">
+        <div style="font-weight:700">${esc(FREQ_LABEL[t.frequency]||t.frequency)}</div>
+        <div class="mono muted2" style="font-size:11px;margin-top:2px">${esc(t.frequency)} · ${t.item_count} items${due?' · scheduled':''}</div>
+        ${due?`<div style="margin-top:8px"><span class="chip ${dueState}"><span class="dot"></span>${dueState==='ok'?'Up to date':dueState==='due_soon'?'Due soon':'Overdue'}</span></div>`:`<div class="muted2" style="font-size:11px;margin-top:8px">Open checklist →</div>`}
+      </button>`);
+    card.onclick=()=>engChecklist(e,t.frequency); grid.appendChild(card);
+  });
+}
+function detail(l,v){ return `<div><div class="muted2" style="font-size:11px">${l}</div><div style="margin-top:2px">${esc(v)}</div></div>`; }
+
+async function engChecklist(e,freq){
+  freq = freq || (e.schedule && e.schedule.frequency) || '1M';
+  loading();
+  let cl;
+  try{ cl=await API.call('/checklists?equipment_type='+encodeURIComponent(e.type)+'&frequency='+freq); }
+  catch(err){ toast('No '+freq+' checklist for '+e.type); return engAsset(e); }
+  App.draft={freq, results:cl.items.map(i=>({item_no:i.item_no,section:i.section||null,description:i.description,requires_reading:i.requires_reading,reading_unit:i.reading_unit,readings:(i.readings||[]).map(x=>({code:x.code,unit:x.unit||null,value:''})),status:null,reading_value:'',remarks:''})),overall:'good',
+    serviced_by:'', checked_by:App.user.name, signature:'', note:'', media:[]};
+  const shell=engShell(null,false); render(shell); const b=$('engbody');
+  b.appendChild(backBar((FREQ_LABEL[freq]||freq)+' checklist',()=>engAsset(e)));
+  b.appendChild(el(`<div class="mono muted2" style="font-size:12px;margin-bottom:4px">${esc(e.tag)} · ${esc(e.name)}${e.site_name?' · '+esc(e.site_name):''}</div>`));
+  b.appendChild(el(`<div class="muted2" style="font-size:12px;margin-bottom:10px">${App.draft.results.length} items · tick status, enter readings & remarks</div>`));
+  const wrap=el(`<div class="grid"></div>`);
+  let curSection=null;
+  App.draft.results.forEach((r,i)=>{
+    r.media=r.media||[];
+    if(r.section && r.section!==curSection){ curSection=r.section; wrap.appendChild(el(`<div class="eyebrow" style="margin-top:14px;color:var(--teal)">${esc(r.section)}</div>`)); }
+    const hasMulti=(r.readings&&r.readings.length>0);
+    const readBlock = hasMulti
+      ? `<div style="display:grid;gap:6px">${r.readings.map((rd,k)=>`<div class="row" style="gap:8px;align-items:center"><span class="mono muted2" style="font-size:12px;width:46px">${esc(rd.code)}</span><input data-rv="${i}-${k}" inputmode="text" placeholder="value${rd.unit?' ('+esc(rd.unit)+')':''}" style="flex:1;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:7px 10px;color:var(--text);font-size:13px"></div>`).join('')}</div>`
+      : `<input data-read="${i}" inputmode="text" placeholder="${r.requires_reading?('Reading'+(r.reading_unit?' ('+r.reading_unit+')':'')):'Reading / value (optional)'}" style="background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:7px 10px;color:var(--text);outline:none;font-size:13px">`;
+    const it=el(`<div class="item">
+      <div class="row" style="align-items:flex-start"><span class="mono muted2" style="font-size:11px;width:24px;flex-shrink:0">${r.item_no}</span><span style="flex:1;font-size:13.5px">${esc(r.description)}</span></div>
+      <div class="seg" style="margin-top:9px;margin-left:24px" data-i="${i}">
+        <button data-v="yes">${icon('check')} Yes</button><button data-v="no">${icon('x')} No</button><button data-v="na">NA</button></div>
+      <div style="margin-left:24px;margin-top:8px;display:grid;gap:7px">
+        ${readBlock}
+        <input data-rem="${i}" placeholder="Remarks" style="background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:7px 10px;color:var(--text);outline:none;font-size:13px">
+      </div>
+      <div class="row" style="margin-left:24px;margin-top:8px;gap:8px;flex-wrap:wrap" data-media></div>
+    </div>`);
+    it.querySelectorAll('.seg button').forEach(btn=>btn.onclick=()=>{
+      r.status=btn.dataset.v; it.querySelectorAll('.seg button').forEach(x=>x.className=''); btn.className='on-'+btn.dataset.v; updateSubmit();
+    });
+    if(hasMulti){ it.querySelectorAll('[data-rv]').forEach(inp=>{ const[,k]=inp.dataset.rv.split('-'); inp.oninput=ev=>r.readings[+k].value=ev.target.value; }); }
+    else { it.querySelector('[data-read]').oninput=ev=>r.reading_value=ev.target.value; }
+    it.querySelector('[data-rem]').oninput=ev=>r.remarks=ev.target.value;
+    // per-item photo/video
+    const mediaRow=it.querySelector('[data-media]');
+    const pIn=el(`<input type="file" accept="image/*" capture="environment" style="display:none">`);
+    const vIn=el(`<input type="file" accept="video/*" style="display:none">`);
+    const pBtn=el(`<button class="muted2" style="border:1px dashed var(--line2);border-radius:8px;padding:5px 9px;font-size:12px;display:flex;align-items:center;gap:5px">${icon('cam')} Photo</button>`);
+    const vBtn=el(`<button class="muted2" style="border:1px dashed var(--line2);border-radius:8px;padding:5px 9px;font-size:12px;display:flex;align-items:center;gap:5px">${icon('doc')} Video</button>`);
+    const addThumb=(item)=>{ const cell=el(`<div style="position:relative;width:48px;height:48px;border-radius:8px;overflow:hidden;border:1px solid var(--line2)"></div>`);
+      cell.appendChild(item.kind==='photo'?el(`<img src="${item.data_url}" style="width:100%;height:100%;object-fit:cover">`):el(`<div style="width:100%;height:100%;display:grid;place-items:center;background:var(--bg2);color:var(--teal);font-size:9px">▶</div>`));
+      const rm=el(`<button style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;line-height:1">×</button>`);
+      rm.onclick=()=>{ const j=r.media.indexOf(item); if(j>=0) r.media.splice(j,1); cell.remove(); };
+      cell.appendChild(rm); mediaRow.insertBefore(cell,pBtn); };
+    pBtn.onclick=()=>pIn.click(); vBtn.onclick=()=>vIn.click();
+    pIn.onchange=async()=>{ const f=pIn.files[0]; pIn.value=''; if(!f)return; try{ const url=await resizeImage(f,1280,0.7); const item={kind:'photo',item_no:r.item_no,data_url:url}; r.media.push(item); addThumb(item); }catch{ toast('Could not read photo'); } };
+    vIn.onchange=()=>{ const f=vIn.files[0]; vIn.value=''; if(!f)return; if(f.size>20*1024*1024){ toast('Video too large (max 20MB)'); return; } const rd=new FileReader(); rd.onload=()=>{ const item={kind:'video',item_no:r.item_no,data_url:rd.result}; r.media.push(item); addThumb(item); }; rd.readAsDataURL(f); };
+    mediaRow.appendChild(pBtn); mediaRow.appendChild(vBtn); mediaRow.appendChild(pIn); mediaRow.appendChild(vIn);
+    wrap.appendChild(it);
+  });
+  b.appendChild(wrap);
+  // overall status
+  b.appendChild(el(`<div class="eyebrow" style="margin-top:16px">Overall status</div>`));
+  const seg=el(`<div class="seg" style="margin-top:9px"></div>`);
+  [['good','Good'],['attention','Needs attention'],['fault','Fault']].forEach(([v,l])=>{
+    const btn=el(`<button>${l}</button>`); if(v==='good') btn.className='on-yes';
+    btn.onclick=()=>{ App.draft.overall=v; seg.querySelectorAll('button').forEach(x=>x.className=''); btn.className=v==='good'?'on-yes':v==='fault'?'on-no':'on-na'; };
+    seg.appendChild(btn);
+  });
+  b.appendChild(seg);
+  // general photos & video (not tied to a specific item)
+  b.appendChild(el(`<div class="eyebrow" style="margin-top:16px">General photos &amp; video <span class="muted2" style="text-transform:none;letter-spacing:0">· optional, item photos are added on each line above</span></div>`));
+  const media=el(`<div class="row" style="margin-top:9px;flex-wrap:wrap;gap:8px"></div>`);
+  const photoBtn=el(`<button style="width:62px;height:62px;border:1px dashed var(--line2);border-radius:11px;color:var(--muted2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:18px">${icon('cam')}<span style="font-size:9px">Photo</span></button>`);
+  const videoBtn=el(`<button style="width:62px;height:62px;border:1px dashed var(--line2);border-radius:11px;color:var(--muted2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:18px">${icon('doc')}<span style="font-size:9px">Video</span></button>`);
+  const photoIn=el(`<input type="file" accept="image/*" capture="environment" style="display:none">`);
+  const videoIn=el(`<input type="file" accept="video/*" style="display:none">`);
+  const addThumb=(item)=>{ const cell=el(`<div style="position:relative;width:62px;height:62px;border-radius:11px;overflow:hidden;border:1px solid var(--line2)"></div>`);
+    if(item.kind==='photo') cell.appendChild(el(`<img src="${item.data_url}" style="width:100%;height:100%;object-fit:cover">`));
+    else cell.appendChild(el(`<div style="width:100%;height:100%;display:grid;place-items:center;background:var(--bg2);color:var(--teal);font-size:11px">▶ video</div>`));
+    const rm=el(`<button style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:18px;height:18px;font-size:11px;line-height:1">×</button>`);
+    rm.onclick=()=>{ const i=App.draft.media.indexOf(item); if(i>=0)App.draft.media.splice(i,1); cell.remove(); };
+    cell.appendChild(rm); media.insertBefore(cell,photoBtn); };
+  photoBtn.onclick=()=>photoIn.click(); videoBtn.onclick=()=>videoIn.click();
+  photoIn.onchange=async()=>{ const f=photoIn.files[0]; photoIn.value=''; if(!f) return;
+    try{ const url=await resizeImage(f,1280,0.7); const item={kind:'photo',data_url:url}; App.draft.media.push(item); addThumb(item); }catch{ toast('Could not read photo'); } };
+  videoIn.onchange=()=>{ const f=videoIn.files[0]; videoIn.value=''; if(!f) return;
+    if(f.size>20*1024*1024){ toast('Video too large (max 20MB for now)'); return; }
+    const rd=new FileReader(); rd.onload=()=>{ const item={kind:'video',data_url:rd.result}; App.draft.media.push(item); addThumb(item); }; rd.readAsDataURL(f); };
+  media.appendChild(photoBtn); media.appendChild(videoBtn); media.appendChild(photoIn); media.appendChild(videoIn); b.appendChild(media);
+  // verification
+  b.appendChild(el(`<div class="eyebrow" style="margin-top:18px">Completion / verification</div>`));
+  const ver=el(`<div class="grid" style="margin-top:9px">
+     <div class="field"><label>Serviced by (vendor or in-house)</label><input id="v_srv" placeholder="e.g. Flowea (in-house) or ABC Vendor"></div>
+     <div class="field"><label>Checked by</label><input id="v_by" value="${esc(App.user.name)}"></div>
+     <div class="field"><label>Note / remark (optional)</label><input id="v_note" placeholder="Overall note for this visit"></div>
+     <div class="row" style="gap:10px">
+       <div class="field" style="flex:1"><label>Date</label><input id="v_date" value="${fmtDate(new Date())}" readonly style="opacity:.7"></div>
+       <div class="field" style="flex:1"><label>Signature</label><input id="v_sig" placeholder="Type initials"></div>
+     </div></div>`);
+  b.appendChild(ver);
+  ver.querySelector('#v_srv').oninput=ev=>App.draft.serviced_by=ev.target.value;
+  ver.querySelector('#v_by').oninput=ev=>App.draft.checked_by=ev.target.value;
+  ver.querySelector('#v_note').oninput=ev=>App.draft.note=ev.target.value;
+  ver.querySelector('#v_sig').oninput=ev=>App.draft.signature=ev.target.value;
+  // sticky submit
+  const foot=el(`<div style="position:sticky;bottom:0;background:var(--surface);border-top:1px solid var(--line);margin:18px -16px -18px;padding:14px 16px">
+     <div id="subnote" style="font-size:12px;margin-bottom:8px"></div>
+     <button class="btn" id="subBtn" style="width:100%;background:var(--emerald);color:#04231a">Submit report</button></div>`);
+  b.appendChild(foot);
+  $('subBtn').onclick=()=>engSubmit(e);
+  updateSubmit();
+}
+function updateSubmit(){
+  if(!App.draft) return; const all=App.draft.results.every(r=>r.status!==null);
+  const note=$('subnote'), btn=$('subBtn'); if(!btn) return;
+  btn.disabled=!all;
+  note.innerHTML=all?`<span style="color:var(--emerald)">${icon('check')} All items checked</span>`:`<span class="muted2">Check every item to submit</span>`;
+}
+async function engSubmit(e){
+  $('subBtn').disabled=true; $('subBtn').textContent='Submitting…';
+  try{
+    await API.call('/records',{method:'POST',body:{
+      equipment_id:e.id, overall_status:App.draft.overall, frequency:App.draft.freq,
+      serviced_by:App.draft.serviced_by||null, checked_by:App.draft.checked_by||null,
+      signature:App.draft.signature||null, note:App.draft.note||null,
+      results:App.draft.results.map(r=>({item_no:r.item_no,section:r.section||null,description:r.description,status:r.status,reading_value:r.reading_value||null,reading_unit:r.reading_unit||null,readings:(r.readings||[]).map(rd=>({code:rd.code,value:rd.value||null,unit:rd.unit||null})),remarks:r.remarks||null})),
+      media:[...App.draft.results.flatMap(r=>(r.media||[]).map(m=>({kind:m.kind,item_no:r.item_no,data_url:m.data_url}))), ...(App.draft.media||[]).map(m=>({kind:m.kind,item_no:null,data_url:m.data_url}))]
+    }});
+    engDone(e);
+  }catch(err){ $('subBtn').disabled=false; $('subBtn').textContent='Submit report'; toast(err.message); }
+}
+function engDone(e){
+  const shell=engShell(null,false); render(shell); const b=$('engbody');
+  b.innerHTML=`<div style="display:grid;place-items:center;text-align:center;min-height:100%;padding:30px 10px">
+    <div style="width:78px;height:78px;border-radius:50%;background:#0c3326;border:1px solid #10663f;display:grid;place-items:center;color:var(--emerald);font-size:40px;margin-bottom:18px">${icon('check')}</div>
+    <div style="font-size:20px;font-weight:800">Report submitted</div>
+    <p class="muted" style="font-size:14px;margin-top:8px;max-width:280px">Saved and sent for <b>manager approval</b>. Once approved it goes to the customer for sign-off. The next due date is recalculated.</p>
+    <button class="btn" id="doneBtn" style="margin-top:22px">Back to dashboard</button></div>`;
+  $('doneBtn').onclick=()=>{ toast('Maintenance recorded'); showEngineer(); };
+}
+function backBar(title,fn){ const n=el(`<div class="row" style="padding:12px 0"><button class="muted" style="font-size:22px">${icon('back')}</button><span style="font-weight:700">${esc(title)}</span></div>`); n.querySelector('button').onclick=fn; return n; }
+
+/* ============ PORTAL (admin / manager / customer / leadership) ============ */
+const ROLE_LABEL={admin:'Administrator',manager:'Maintenance Manager',customer:'Customer',leadership:'Leadership · view only'};
+async function showPortal(mode){
+  loading();
+  const readOnly = mode!=='admin';
+  let summary, equip;
+  try{ [summary,equip]=await Promise.all([API.call('/dashboard/summary'),API.call('/equipment')]); }
+  catch(e){ return showLogin(e.message); }
+  App.cache={summary,equip,readOnly,mode};
+  const TAB={dash:['dash','Dashboard','chart'],equip:['equipment','Equipment','box'],cl:['checklists','Checklists','list'],
+    rec:['records','Reports','doc'],rep:['reports','Analytics','chart'],usr:['users','Users','user'],set:['settings','Settings','cog']};
+  const tabs = mode==='admin' ? [TAB.dash,TAB.equip,TAB.cl,TAB.rec,TAB.rep,TAB.usr,TAB.set]
+    : mode==='manager' ? [TAB.dash,TAB.rec,TAB.rep,TAB.set]
+    : mode==='customer' ? [TAB.rec,TAB.set]
+    : [TAB.dash,TAB.rep,TAB.rec,TAB.set];
+  const accent = mode==='admin'?['#10283a','var(--sky)','#1d4b6b'] : mode==='manager'?['#13314a','var(--teal)','var(--teal-d)'] : mode==='customer'?['#2a2410','var(--amber)','#7a5a12'] : ['#231b3a','var(--violet)','#3a2d5e'];
+  const shell=el(`<div>
+    <div class="topbar"><div class="wrap" style="height:56px;display:flex;align-items:center;gap:12px">
+      <div style="width:32px;height:32px;border-radius:9px;background:#0c3a37;border:1px solid var(--teal-d);display:grid;place-items:center;color:var(--teal)">${icon('wrench')}</div>
+      <b>Flowea</b>
+      <span class="pill" style="background:${accent[0]};color:${accent[1]};border:1px solid ${accent[2]}">${ROLE_LABEL[mode]||mode}</span>
+      <div style="margin-left:auto" class="row">
+        <button class="muted sm" onclick="logout()">${icon('out')} Sign out</button></div>
+    </div>
+    <div class="wrap"><div id="tabs" style="display:flex;gap:4px;overflow-x:auto"></div></div></div>
+    <div class="wrap" id="portalbody" style="padding-top:22px;padding-bottom:40px"></div></div>`);
+  render(shell);
+  const tabsEl=$('tabs');
+  tabs.forEach(([id,label,ic])=>{ const t=el(`<button class="tabbtn ${App.tab===id?'active':''}" data-id="${id}">${icon(ic)} ${label}</button>`);
+    t.onclick=()=>{ App.tab=id; tabsEl.querySelectorAll('.tabbtn').forEach(x=>x.classList.toggle('active',x.dataset.id===id)); renderTab(readOnly); };
+    tabsEl.appendChild(t); });
+  if(!tabs.find(t=>t[0]===App.tab)) App.tab=tabs[0][0];
+  renderTab(readOnly);
+}
+function renderTab(readOnly){
+  const {summary,equip}=App.cache; const b=$('portalbody'); b.innerHTML='';
+  if(App.tab==='dash') portalDash(b,summary,equip);
+  else if(App.tab==='equipment' && !readOnly) portalEquipment(b,equip);
+  else if(App.tab==='checklists' && !readOnly) portalChecklists(b);
+  else if(App.tab==='records') portalRecords(b);
+  else if(App.tab==='reports') portalReports(b,summary);
+  else if(App.tab==='users' && !readOnly) portalUsers(b);
+  else if(App.tab==='settings') portalSettings(b);
+}
+function kpi(n,lab,col){ return `<div class="kpi"><div class="row" style="justify-content:space-between"><span class="lab">${lab}</span></div><div class="n" style="color:var(${col})">${n}</div></div>`; }
+function portalDash(b,s,equip){
+  b.appendChild(el(`<div class="eyebrow">Overview</div>`));
+  b.appendChild(el(`<div class="grid" style="grid-template-columns:repeat(2,1fr);margin-top:12px" id="kpis"></div>`));
+  $('kpis').innerHTML = kpi(s.total,'Total equipment','--text')+kpi(s.due_soon,'Due soon (7d)','--amber')+kpi(s.overdue,'Overdue','--rose')+kpi(s.completed_today,'Completed today','--emerald');
+  window.matchMedia('(min-width:640px)').matches && ($('kpis').style.gridTemplateColumns='repeat(4,1fr)');
+  const att=equip.filter(e=>e.schedule&&e.schedule.status!=='ok').sort((a,b)=>a.schedule.days_until-b.schedule.days_until);
+  const card=el(`<div class="card" style="margin-top:22px;overflow:hidden"><div style="padding:13px 16px;border-bottom:1px solid var(--line)" class="row">${icon('alert')}<b style="font-size:14px">Requires attention</b></div></div>`);
+  card.appendChild(equipTable(att,false));
+  if(!att.length) card.appendChild(el(`<div class="muted" style="padding:26px;text-align:center;font-size:14px">All equipment is up to date.</div>`));
+  b.appendChild(card);
+}
+function equipTable(rows,withQr){
+  const t=el(`<div style="overflow-x:auto"><table><thead><tr><th>Tag</th><th>Equipment</th><th>Location</th><th>Freq</th><th>Next due</th><th>Status</th>${withQr?'<th style="text-align:right">QR</th>':''}</tr></thead><tbody></tbody></table></div>`);
+  const tb=t.querySelector('tbody');
+  rows.forEach(e=>{ const s=e.schedule||{}; const tr=el(`<tr>
+     <td class="mono" style="color:var(--teal);font-size:13px">${esc(e.tag)}</td>
+     <td><div style="font-weight:600">${esc(e.name)}</div></td>
+     <td class="muted">${esc(e.location)}</td>
+     <td class="mono muted" style="font-size:13px">${esc(s.frequency||'')}</td>
+     <td class="mono" style="font-size:13px">${fmtDate(s.next_due)}</td>
+     <td><span class="chip ${s.status||'ok'}"><span class="dot"></span>${s.status==='ok'?'Up to date':s.status==='due_soon'?'Due soon':s.status==='overdue'?'Overdue':'—'}</span></td>
+     ${withQr?'<td style="text-align:right"></td>':''}</tr>`);
+    if(withQr){ const btn=el(`<button class="btn ghost sm">${icon('qr')} Label</button>`); btn.onclick=()=>qrModal(e); tr.lastChild.appendChild(btn); }
+    tb.appendChild(tr); });
+  return t;
+}
+function portalEquipment(b,equip){
+  const head=el(`<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:14px">
+     <div><div class="eyebrow">Equipment master</div><div class="muted" style="font-size:14px;margin-top:4px">${equip.length} assets · generate a QR label for any item</div></div>
+     <div class="row" style="gap:8px"><button class="btn ghost sm" id="impBtn">${icon('save')} Import Excel</button><button class="btn sm" id="addBtn">${icon('plus')} Add equipment</button></div></div>`);
+  b.appendChild(head); $('addBtn').onclick=addEquipmentModal; $('impBtn').onclick=importEquipmentModal;
+  const card=el(`<div class="card" style="overflow:hidden"></div>`); card.appendChild(equipTable(equip,true)); b.appendChild(card);
+}
+const APPROVAL_META={submitted:['Awaiting manager','amber'],approved:['Manager approved','sky'],closed:['Customer signed','emerald'],rejected:['Sent back','rose']};
+async function portalRecords(b){
+  const mode=App.cache.mode;
+  b.appendChild(el(`<div class="eyebrow">Maintenance reports</div><div class="muted" style="font-size:14px;margin:4px 0 14px">${mode==='manager'?'Review & sign submitted reports.':mode==='customer'?'Review approved reports and sign to confirm.':'Submitted from the field · approval trail.'}</div>`));
+  let recs; try{ recs=await API.call('/records'); }catch(e){ b.appendChild(el(`<div class="muted">${esc(e.message)}</div>`)); return; }
+  App.cache.records=recs;
+  // filter row
+  const bar=el(`<div class="row" style="gap:8px;margin-bottom:12px;flex-wrap:wrap"></div>`);
+  const fopts=[['all','All'],['submitted','Awaiting manager'],['approved','Approved'],['closed','Signed']];
+  if(!App.recFilter) App.recFilter='all';
+  fopts.forEach(([v,l])=>{ const btn=el(`<button class="btn ghost sm" style="${App.recFilter===v?'border-color:var(--teal);color:var(--teal)':''}">${l}</button>`); btn.onclick=()=>{App.recFilter=v; portalRecords(($('portalbody').innerHTML='',$('portalbody')));}; bar.appendChild(btn); });
+  b.appendChild(bar);
+  let list=recs; if(App.recFilter!=='all') list=recs.filter(r=>r.approval===App.recFilter);
+  if(!list.length){ b.appendChild(el(`<div class="card" style="padding:40px;text-align:center"><span class="muted">No reports here yet.</span></div>`)); return; }
+  const eqById={}; (App.cache.equip||[]).forEach(e=>eqById[e.id]=e);
+  const wrap=el(`<div class="grid"></div>`);
+  list.forEach(r=>{ const e=eqById[r.equipment_id]||{}; const col=r.overall_status==='good'?'emerald':r.overall_status==='attention'?'amber':'rose';
+    const ap=APPROVAL_META[r.approval]||['—','muted2'];
+    const c=el(`<div class="card" style="padding:16px;cursor:pointer">
+      <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div class="row" style="gap:12px"><span class="mono" style="color:var(--teal);font-size:13px">${esc(e.tag||'—')}</span><span class="mono muted2" style="font-size:12px">${esc(r.frequency)} · ${fmtDate(r.performed_at)}</span></div>
+        <div class="row" style="gap:6px"><span class="pill" style="color:var(--${col});border:1px solid var(--${col})">${esc(r.overall_status)}</span><span class="pill" style="color:var(--${ap[1]});border:1px solid var(--${ap[1]})">${ap[0]}</span></div></div>
+      <div class="row muted2" style="font-size:12px;margin-top:10px;gap:14px;flex-wrap:wrap">
+        ${r.site_name?`<span>Site: <span class="muted">${esc(r.site_name)}</span></span>`:''}${e.name?`<span>${esc(e.name)}</span>`:''}
+        ${r.serviced_by?`<span>Serviced by: <span class="muted">${esc(r.serviced_by)}</span></span>`:''}${r.checked_by?`<span>Checked by: <span class="muted">${esc(r.checked_by)}</span></span>`:''}<span>${r.results.length} items</span>${(r.media&&r.media.length)?`<span>${icon('cam')} ${r.media.length}</span>`:''}</div>
+      ${r.approval==='rejected'&&r.rejected_note?`<div style="margin-top:10px;font-size:12px;color:var(--rose);background:#330f17;border:1px solid #7a2030;border-radius:8px;padding:8px 10px">Sent back: ${esc(r.rejected_note)}${r.rejected_by?' — '+esc(r.rejected_by):''}</div>`:''}
+      <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap" data-actions></div></div>`);
+    c.onclick=(ev)=>{ if(ev.target.closest('[data-actions] button')) return; reportModal(r,e); };
+    const act=c.querySelector('[data-actions]');
+    const view=el(`<button class="btn ghost sm">${icon('doc')} View report</button>`); view.onclick=()=>reportModal(r,e); act.appendChild(view);
+    if((mode==='manager'||mode==='admin') && (r.approval==='submitted'||r.approval==='rejected')){ const ap2=el(`<button class="btn sm">${icon('check')} Review & approve</button>`); ap2.onclick=()=>approveModal(r,e); act.appendChild(ap2); }
+    if((mode==='customer'||mode==='admin') && r.approval==='approved'){ const cs=el(`<button class="btn sm" style="background:var(--amber);color:#2a1f04">${icon('check')} Review & sign</button>`); cs.onclick=()=>customerSignModal(r,e); act.appendChild(cs); }
+    wrap.appendChild(c); });
+  b.appendChild(wrap);
+}
+function approveModal(r,e){ signModal(r,e,'approve','Manager approval','Confirm there are no issues, then sign to approve and forward to the customer. If something is missing, send it back with a reason.','/records/'+r.id+'/approve'); }
+function customerSignModal(r,e){ signModal(r,e,'customer','Customer sign-off','Review the report. If you agree, sign to confirm. If remarks or values are not acceptable, send it back with a reason.','/records/'+r.id+'/customer-sign'); }
+function signModal(r,e,kind,title,desc,endpoint){
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:22px;width:100%;max-width:440px;max-height:92vh;overflow:auto">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><b>${title}</b><button class="muted" id="cx" style="font-size:18px">${icon('x')}</button></div>
+    <div class="muted2" style="font-size:13px;margin-bottom:14px">${desc}</div>
+    <div class="card" style="padding:12px;margin-bottom:14px;background:var(--bg2)"><div class="mono" style="font-size:12px;color:var(--teal)">${esc(e.tag||'—')}</div><div style="font-weight:600;margin-top:2px">${esc(e.name||'')}</div><div class="muted2" style="font-size:12px;margin-top:4px">${esc(r.frequency)} · ${fmtDate(r.performed_at)} · ${r.results.length} items</div></div>
+    <button class="btn ghost sm" id="openRep" style="width:100%;margin-bottom:14px">${icon('doc')} Open full report first</button>
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>Name</label><input id="s_name" value="${esc(App.user.name)}"></div>
+      <div class="field"><label>Signature</label><input id="s_sig" placeholder="Type initials"></div></div>
+    <div class="field" style="margin-top:10px;margin-bottom:14px"><label>Note / remark</label><input id="s_note" placeholder="Comment (required if sending back)"></div>
+    <div class="row" style="gap:8px">
+      <button class="btn" id="s_go" style="flex:1">${icon('check')} Sign &amp; confirm</button>
+      <button class="btn ghost" id="s_rej" style="border-color:#7a2030;color:var(--rose)">Send back</button></div>
+    <div id="s_err" style="color:var(--rose);font-size:13px;margin-top:8px"></div></div></div>`);
+  m.querySelector('#cx').onclick=()=>m.remove(); m.onclick=ev=>{if(ev.target===m)m.remove();};
+  m.querySelector('#openRep').onclick=()=>reportModal(r,e);
+  const payload=()=>({name:m.querySelector('#s_name').value.trim()||null,signature:m.querySelector('#s_sig').value.trim()||null,note:m.querySelector('#s_note').value.trim()||null});
+  m.querySelector('#s_go').onclick=async()=>{
+    const btn=m.querySelector('#s_go'); btn.disabled=true; btn.textContent='Signing…';
+    try{ await API.call(endpoint,{method:'POST',body:payload()});
+      m.remove(); toast(kind==='approve'?'Approved & sent to customer':'Signed — report closed'); App.cache.records=null; renderTab(App.cache.readOnly);
+    }catch(e){ btn.disabled=false; btn.innerHTML=icon('check')+' Sign &amp; confirm'; m.querySelector('#s_err').textContent=e.message; }
+  };
+  m.querySelector('#s_rej').onclick=async()=>{
+    const p=payload(); if(!p.note){ m.querySelector('#s_err').textContent='Please add a reason for sending it back.'; return; }
+    const btn=m.querySelector('#s_rej'); btn.disabled=true; btn.textContent='Sending…';
+    try{ await API.call('/records/'+r.id+'/reject',{method:'POST',body:p});
+      m.remove(); toast('Sent back to the engineer'); App.cache.records=null; renderTab(App.cache.readOnly);
+    }catch(e){ btn.disabled=false; btn.textContent='Send back'; m.querySelector('#s_err').textContent=e.message; }
+  };
+  document.body.appendChild(m);
+}
+async function portalReports(b,s){
+  // load records once (for monthly completions) and cache
+  if(!App.cache.records){ try{ App.cache.records=await API.call('/records'); }catch{ App.cache.records=[]; } }
+  const recs=App.cache.records, equip=App.cache.equip||[];
+  if(!App.repFilters) App.repFilters={status:'all',system:'all',type:'all',compare:'system'};
+
+  b.innerHTML='';
+  b.appendChild(el(`<div class="eyebrow">Reports & analytics</div>`));
+
+  // --- charts row: donut + monthly completions ---
+  const seg=[{value:s.ok,color:'#34d399',label:'Up to date'},{value:s.due_soon,color:'#fbbf24',label:'Due soon'},{value:s.overdue,color:'#fb7185',label:'Overdue'}];
+  const charts=el(`<div class="grid" style="grid-template-columns:1fr;gap:16px;margin-top:12px" id="charts"></div>`);
+  const donutCard=el(`<div class="card" style="padding:18px"><b style="font-size:14px">Equipment status</b>
+     <div class="row" style="gap:20px;margin-top:14px;align-items:center;flex-wrap:wrap">
+       <div>${donutSVG(seg,150)}</div>
+       <div class="grid" style="gap:8px">${seg.map(x=>`<div class="row" style="gap:8px;font-size:13px"><span style="width:11px;height:11px;border-radius:3px;background:${x.color}"></span><span class="muted">${x.label}</span><span class="mono" style="margin-left:8px">${x.value}</span></div>`).join('')}</div>
+     </div></div>`);
+  const monthly=monthlyCounts(recs,6);
+  const maxM=Math.max(1,...monthly.map(m=>m.n));
+  const barsCard=el(`<div class="card" style="padding:18px"><b style="font-size:14px">Completed maintenance / month</b>
+     <div class="row" style="align-items:flex-end;gap:10px;height:160px;margin-top:16px;padding-bottom:4px">
+       ${monthly.map(m=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+          <div class="mono" style="font-size:12px;color:var(--muted)">${m.n||''}</div>
+          <div style="width:60%;background:var(--teal);border-radius:5px 5px 0 0;height:${Math.round(m.n/maxM*120)+2}px"></div>
+          <div class="muted2" style="font-size:11px">${m.label}</div></div>`).join('')}
+     </div></div>`);
+  charts.appendChild(donutCard); charts.appendChild(barsCard);
+  if(window.matchMedia('(min-width:760px)').matches) charts.style.gridTemplateColumns='1fr 1fr';
+  b.appendChild(charts);
+
+  // --- compare ---
+  b.appendChild(el(`<div class="eyebrow" style="margin-top:24px">Compare</div>`));
+  const cmpWrap=el(`<div class="card" style="padding:18px;margin-top:10px"></div>`);
+  const cmpControls=el(`<div class="row" style="gap:8px;margin-bottom:14px;flex-wrap:wrap"><span class="muted" style="font-size:13px">Group by:</span></div>`);
+  ['system','type','frequency'].forEach(dim=>{ const btn=el(`<button class="btn ghost sm ${App.repFilters.compare===dim?'':''}" data-d="${dim}" style="${App.repFilters.compare===dim?'border-color:var(--teal);color:var(--teal)':''}">${dim[0].toUpperCase()+dim.slice(1)}</button>`);
+    btn.onclick=()=>{ App.repFilters.compare=dim; renderTab(App.cache.readOnly); }; cmpControls.appendChild(btn); });
+  cmpWrap.appendChild(cmpControls);
+  const groups=groupBy(equip,App.repFilters.compare);
+  cmpWrap.appendChild(el(`<div class="row" style="gap:14px;font-size:11px;margin-bottom:12px;color:var(--muted2)">
+     <span class="row" style="gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:var(--emerald)"></span>Up to date</span>
+     <span class="row" style="gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:var(--amber)"></span>Due soon</span>
+     <span class="row" style="gap:5px"><span style="width:9px;height:9px;border-radius:2px;background:var(--rose)"></span>Overdue</span></div>`));
+  Object.keys(groups).sort().forEach(g=>{ const arr=groups[g];
+    const ok=arr.filter(e=>e.schedule&&e.schedule.status==='ok').length;
+    const due=arr.filter(e=>e.schedule&&e.schedule.status==='due_soon').length;
+    const ov=arr.filter(e=>e.schedule&&e.schedule.status==='overdue').length;
+    cmpWrap.appendChild(el(groupStacked(g,ok,due,ov))); });
+  b.appendChild(cmpWrap);
+
+  // --- maintenance status table with filters (done / not yet done) ---
+  b.appendChild(el(`<div class="eyebrow" style="margin-top:24px">Maintenance status</div>`));
+  const systems=['all',...new Set(equip.map(e=>e.system))];
+  const types=['all',...new Set(equip.map(e=>e.type))];
+  const filters=el(`<div class="row" style="gap:10px;margin:10px 0;flex-wrap:wrap">
+     <select id="fStatus" class="repsel"><option value="all">All status</option><option value="done">Done (up to date)</option><option value="notdone">Not yet done</option></select>
+     <select id="fSystem" class="repsel">${systems.map(s=>`<option value="${s}">${s==='all'?'All systems':s}</option>`).join('')}</select>
+     <select id="fType" class="repsel">${types.map(t=>`<option value="${t}">${t==='all'?'All types':t}</option>`).join('')}</select>
+  </div>`);
+  filters.querySelectorAll('select').forEach(sel=>{ sel.style.cssText='background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;color:var(--text);font-size:13px;outline:none'; });
+  filters.querySelector('#fStatus').value=App.repFilters.status;
+  filters.querySelector('#fSystem').value=App.repFilters.system;
+  filters.querySelector('#fType').value=App.repFilters.type;
+  b.appendChild(filters);
+  const tableHost=el(`<div class="card" style="overflow:hidden"></div>`); b.appendChild(tableHost);
+  const drawTable=()=>{
+    let rows=equip.slice();
+    const f=App.repFilters;
+    if(f.system!=='all') rows=rows.filter(e=>e.system===f.system);
+    if(f.type!=='all') rows=rows.filter(e=>e.type===f.type);
+    if(f.status==='done') rows=rows.filter(e=>e.schedule&&e.schedule.status==='ok');
+    if(f.status==='notdone') rows=rows.filter(e=>e.schedule&&e.schedule.status!=='ok');
+    tableHost.innerHTML='';
+    const t=el(`<div style="overflow-x:auto"><table><thead><tr><th>Tag</th><th>Equipment</th><th>System</th><th>Freq</th><th>Last inspection</th><th>Next due</th><th>Maintenance</th></tr></thead><tbody></tbody></table></div>`);
+    const tb=t.querySelector('tbody');
+    rows.forEach(e=>{ const sc=e.schedule||{}; const done=sc.status==='ok';
+      tb.appendChild(el(`<tr>
+        <td class="mono" style="color:var(--teal);font-size:13px">${esc(e.tag)}</td>
+        <td><div style="font-weight:600">${esc(e.name)}</div><div class="muted2" style="font-size:11px">${esc(e.type)}</div></td>
+        <td class="muted">${esc(e.system)}</td>
+        <td class="mono muted" style="font-size:13px">${esc(sc.frequency||'')}</td>
+        <td class="mono" style="font-size:13px">${fmtDate(sc.last_done)}</td>
+        <td class="mono" style="font-size:13px">${fmtDate(sc.next_due)}</td>
+        <td><span class="pill" style="color:var(--${done?'emerald':'rose'});border:1px solid var(--${done?'emerald':'rose'})">${done?'✓ Done':'Not yet done'}</span></td>
+      </tr>`)); });
+    if(!rows.length) tableHost.appendChild(el(`<div class="muted" style="padding:24px;text-align:center;font-size:14px">No equipment matches these filters.</div>`));
+    else tableHost.appendChild(t);
+  };
+  filters.querySelector('#fStatus').onchange=e=>{ App.repFilters.status=e.target.value; drawTable(); };
+  filters.querySelector('#fSystem').onchange=e=>{ App.repFilters.system=e.target.value; drawTable(); };
+  filters.querySelector('#fType').onchange=e=>{ App.repFilters.type=e.target.value; drawTable(); };
+  drawTable();
+}
+function donutSVG(segs,size){
+  const total=segs.reduce((a,s)=>a+s.value,0)||1, r=size/2-16, cx=size/2, cy=size/2, C=2*Math.PI*r;
+  let off=0, arcs='';
+  segs.forEach(s=>{ if(s.value<=0) return; const len=s.value/total*C;
+    arcs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="16" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"/>`; off+=len; });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#1b2738" stroke-width="16"/>${arcs}<text x="${cx}" y="${cy-1}" text-anchor="middle" fill="#e6edf6" font-size="26" font-weight="800" font-family="ui-monospace,monospace">${total}</text><text x="${cx}" y="${cy+18}" text-anchor="middle" fill="#5c6e85" font-size="11">assets</text></svg>`;
+}
+function monthlyCounts(recs,n){
+  const out=[]; const now=new Date(); now.setDate(1);
+  for(let i=n-1;i>=0;i--){ const d=new Date(now.getFullYear(),now.getMonth()-i,1); out.push({key:d.getFullYear()+'-'+(d.getMonth()+1),label:d.toLocaleDateString('en-GB',{month:'short'}),n:0}); }
+  const idx={}; out.forEach((m,i)=>idx[m.key]=i);
+  recs.forEach(r=>{ const d=new Date(r.performed_at); const k=d.getFullYear()+'-'+(d.getMonth()+1); if(k in idx) out[idx[k]].n++; });
+  return out;
+}
+function groupBy(equip,dim){
+  const g={}; equip.forEach(e=>{ const key= dim==='system'?e.system : dim==='type'?e.type : (e.schedule?e.schedule.frequency:'—'); (g[key]=g[key]||[]).push(e); }); return g;
+}
+function groupStacked(label,ok,due,over){
+  const t=Math.max(ok+due+over,1);
+  return `<div style="margin-bottom:13px"><div class="row" style="justify-content:space-between;font-size:13px;margin-bottom:5px"><span>${esc(label)}</span><span class="mono muted2">${ok+due+over}</span></div>
+   <div class="bar" style="display:flex">
+     <span style="width:${ok/t*100}%;background:var(--emerald)"></span>
+     <span style="width:${due/t*100}%;background:var(--amber)"></span>
+     <span style="width:${over/t*100}%;background:var(--rose)"></span></div></div>`;
+}
+
+/* ============ modals ============ */
+function qrModal(e){
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:22px;width:100%;max-width:360px">
+    <div class="row" style="justify-content:space-between;margin-bottom:14px"><b>Asset label</b><button class="muted" style="font-size:18px">${icon('x')}</button></div>
+    <div style="background:#fff;border-radius:12px;padding:18px;color:#0b1220">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px"><span style="font-size:10px;font-weight:800;letter-spacing:.15em;color:#64748b">FLOWEA · SCAN TO MAINTAIN</span></div>
+      <div class="row" style="gap:16px"><canvas width="108" height="108" style="border-radius:6px"></canvas>
+        <div style="min-width:0"><div class="mono" style="font-weight:700">${esc(e.tag)}</div><div>${esc(e.name)}</div><div style="font-size:12px;color:#64748b;margin-top:4px">${esc(e.location)}</div><div style="font-size:12px;color:#64748b">${esc(e.system)}</div></div></div>
+    </div>
+    <div class="mono muted2" style="font-size:11px;margin-top:12px;word-break:break-all">${esc(e.qr_token)}</div>
+    <button class="btn" style="width:100%;margin-top:16px" id="printBtn">${icon('print')} Print label</button>
+  </div></div>`);
+  drawQR(m.querySelector('canvas'),e.qr_token,108);
+  m.querySelector('button').onclick=()=>m.remove();
+  m.onclick=(ev)=>{ if(ev.target===m) m.remove(); };
+  m.querySelector('#printBtn').onclick=()=>{ window.print(); };
+  document.body.appendChild(m);
+}
+async function addEquipmentModal(){
+  if(!App.cache.meta){ try{App.cache.meta=await API.call('/equipment/meta');}catch{App.cache.meta={types:[],systems:[],unit_types:[],frequencies:[],sites:[]};} }
+  const meta=App.cache.meta;
+  const dl=(id,arr)=>`<datalist id="${id}">${(arr||[]).map(v=>`<option value="${esc(v)}">`).join('')}</datalist>`;
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:22px;width:100%;max-width:480px;max-height:92vh;overflow:auto">
+    <div class="row" style="justify-content:space-between;margin-bottom:4px"><b>Add equipment</b><button class="muted" id="cx" style="font-size:18px">${icon('x')}</button></div>
+    <div class="muted2" style="font-size:12px;margin-bottom:14px">All fields optional — pick a suggestion or type your own.</div>
+    <div class="grid">
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>Name</label><input id="f_name" placeholder="e.g. AHU 3"></div>
+        <div class="field"><label>Tag (auto if blank)</label><input id="f_tag" placeholder="e.g. AHU-CM-03"></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>Type / service</label><input id="f_type" list="dl_t" placeholder="e.g. AHU"></div>
+        <div class="field"><label>System</label><input id="f_sys" list="dl_s" placeholder="e.g. ACMV"></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>Site name</label><input id="f_site" list="dl_site" placeholder="e.g. Marina Bay Tower"></div>
+        <div class="field"><label>Location</label><input id="f_loc" placeholder="e.g. Level 4"></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>Cooling capacity</label><input id="f_cap" placeholder="e.g. 20000 CMH"></div>
+        <div class="field"><label>Unit type</label><input id="f_unit" list="dl_u" placeholder="e.g. CHW / DX"></div>
+      </div>
+      <div class="field"><label>Maintenance frequency</label>
+        <div class="seg" id="f_freq" style="flex-wrap:wrap"></div>
+        <div id="f_custom" class="row" style="gap:8px;margin-top:8px;display:none">
+          <span class="muted2" style="font-size:12px">Every</span>
+          <input id="f_iv" inputmode="numeric" value="2" style="width:64px;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:8px;color:var(--text)">
+          <select id="f_iu" style="background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:8px;color:var(--text)"><option value="day">days</option><option value="week">weeks</option><option value="month" selected>months</option><option value="year">years</option></select>
+        </div>
+      </div>
+    </div>
+    ${dl('dl_t',meta.types)}${dl('dl_s',meta.systems)}${dl('dl_u',meta.unit_types)}${dl('dl_site',meta.sites)}
+    <button class="btn" style="width:100%;margin-top:18px" id="saveBtn">Save & generate QR</button>
+    <div id="aerr" style="color:var(--rose);font-size:13px;margin-top:8px"></div>
+  </div></div>`);
+  let freqMode={type:'preset',label:'1M'};
+  const fwrap=m.querySelector('#f_freq');
+  const presets=[...new Set([...(meta.frequencies||[]),'1M','3M','6M','12M'])];
+  const setActive=(b)=>{ fwrap.querySelectorAll('button').forEach(x=>x.className=''); b.className='on-na'; };
+  presets.forEach((f,i)=>{ const btn=el(`<button data-f="${esc(f)}">${esc(f)}</button>`); if(i===0)btn.className='on-na';
+    btn.onclick=()=>{freqMode={type:'preset',label:f}; setActive(btn); m.querySelector('#f_custom').style.display='none';}; fwrap.appendChild(btn); });
+  const customBtn=el(`<button>Custom…</button>`); customBtn.onclick=()=>{freqMode={type:'custom'}; setActive(customBtn); m.querySelector('#f_custom').style.display='flex';}; fwrap.appendChild(customBtn);
+  m.querySelector('#cx').onclick=()=>m.remove(); m.onclick=ev=>{ if(ev.target===m) m.remove(); };
+  m.querySelector('#saveBtn').onclick=async()=>{
+    const g=id=>m.querySelector(id).value.trim();
+    const body={ name:g('#f_name')||null, tag:g('#f_tag')||null, type:g('#f_type')||null, location:g('#f_loc')||null,
+      site_name:g('#f_site')||null, system:g('#f_sys')||null, unit_type:g('#f_unit')||null, cooling_capacity:g('#f_cap')||null };
+    if(freqMode.type==='custom'){ const v=parseInt(m.querySelector('#f_iv').value||'1',10)||1; const u=m.querySelector('#f_iu').value; body.interval_value=v; body.interval_unit=u; body.frequency=`${v}${u[0].toUpperCase()}`; }
+    else body.frequency=freqMode.label;
+    const btn=m.querySelector('#saveBtn'); btn.disabled=true; btn.textContent='Saving…';
+    try{ await API.call('/equipment',{method:'POST',body}); m.remove(); toast('Equipment added — QR ready'); App.cache.meta=null;
+      const [summary,equip]=await Promise.all([API.call('/dashboard/summary'),API.call('/equipment')]); App.cache.summary=summary; App.cache.equip=equip; renderTab(App.cache.readOnly);
+    }catch(e){ btn.disabled=false; btn.textContent='Save & generate QR'; m.querySelector('#aerr').textContent=e.message; }
+  };
+  document.body.appendChild(m);
+}
+
+/* ============ checklist builder (admin) ============ */
+async function portalChecklists(b){
+  if(!App.cache.meta){ try{App.cache.meta=await API.call('/equipment/meta');}catch{App.cache.meta={types:[]};} }
+  const meta=App.cache.meta;
+  b.innerHTML='';
+  b.appendChild(el(`<div class="eyebrow">Checklist builder</div><div class="muted" style="font-size:14px;margin:4px 0 14px">Create or edit the checklist for an equipment type + frequency. Add, edit or remove items freely.</div>`));
+  let tpls=[]; try{ tpls=await API.call('/checklists/templates'); }catch{}
+  const listCard=el(`<div class="card" style="padding:16px;margin-bottom:14px"><div class="eyebrow" style="margin-bottom:10px">Open an existing checklist</div></div>`);
+  if(!tpls.length){ listCard.appendChild(el(`<div class="muted" style="font-size:13px">None yet — create one below.</div>`)); }
+  else {
+    const row=el(`<div class="row" style="gap:8px;flex-wrap:wrap"></div>`);
+    const sel=el(`<select style="flex:1;min-width:220px;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:9px 11px;color:var(--text);font-size:14px"><option value="">Select a checklist…</option>${tpls.map((t,i)=>`<option value="${i}">${esc(t.equipment_type)} · ${esc(t.frequency)} (${t.item_count} items)</option>`).join('')}</select>`);
+    const open=el(`<button class="btn sm">${icon('doc')} Open / edit</button>`);
+    open.onclick=()=>{ const i=sel.value; if(i==='') return; openBuilder(tpls[i].equipment_type,tpls[i].frequency); };
+    sel.onchange=()=>{ if(sel.value!=='') openBuilder(tpls[sel.value].equipment_type,tpls[sel.value].frequency); };
+    row.appendChild(sel); row.appendChild(open); listCard.appendChild(row);
+  }
+  b.appendChild(listCard);
+  const actions=el(`<div class="row" style="gap:8px;flex-wrap:wrap"></div>`);
+  const nb=el(`<button class="btn">${icon('plus')} New checklist</button>`); nb.onclick=()=>openBuilder('','');
+  const imp=el(`<button class="btn ghost">${icon('save')} Import Excel</button>`); imp.onclick=importChecklistModal;
+  actions.appendChild(nb); actions.appendChild(imp); b.appendChild(actions);
+  const host=el(`<div id="builderHost" style="margin-top:16px"></div>`); b.appendChild(host);
+
+  async function openBuilder(type,freq){
+    let items=[];
+    if(type&&freq){ try{ const cl=await API.call('/checklists?equipment_type='+encodeURIComponent(type)+'&frequency='+encodeURIComponent(freq)); items=cl.items.map(i=>({...i})); }catch{} }
+    if(!items.length) items=[{item_no:'1',description:'',requires_reading:false,reading_unit:''}];
+    renderBuilder(type,freq,items);
+  }
+  function renderBuilder(type,freq,items){
+    host.innerHTML='';
+    const card=el(`<div class="card" style="padding:16px"></div>`);
+    card.appendChild(el(`<div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field"><label>Equipment type</label><input id="bt" list="dl_bt" value="${esc(type)}" placeholder="e.g. AHU"></div>
+      <div class="field"><label>Frequency label</label><input id="bf" value="${esc(freq)}" placeholder="e.g. 1M, 3M, Weekly"></div></div>
+      <datalist id="dl_bt">${(meta.types||[]).map(t=>`<option value="${esc(t)}">`).join('')}</datalist>`));
+    card.appendChild(el(`<div class="eyebrow" style="margin-top:14px">Checklist items</div>`));
+    const rows=el(`<div id="bitems" style="margin-top:10px;display:grid;gap:8px"></div>`); card.appendChild(rows);
+    const draw=()=>{ rows.innerHTML='';
+      items.forEach((it,i)=>{ const codes=(it.readings||[]).map(x=>x.code).join(','); const r=el(`<div class="item" style="padding:10px">
+        <div class="row" style="gap:8px;align-items:flex-start">
+          <input value="${esc(it.item_no)}" data-no class="mono" style="width:46px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px;color:var(--text);font-size:13px">
+          <input value="${esc(it.description)}" data-desc placeholder="Description" style="flex:1;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:6px 9px;color:var(--text);font-size:13px">
+          <button data-del class="muted" style="font-size:16px">${icon('trash')}</button></div>
+        <div class="row" style="margin-left:54px;margin-top:8px;gap:8px;flex-wrap:wrap">
+          <input value="${esc(it.section||'')}" data-sec placeholder="Section / heading (optional)" style="flex:1;min-width:160px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px">
+        </div>
+        <div class="row" style="margin-left:54px;margin-top:8px;gap:10px;flex-wrap:wrap;align-items:center">
+          <label class="row" style="gap:6px;font-size:12px;color:var(--muted)"><input type="checkbox" data-rr ${it.requires_reading?'checked':''}> needs reading</label>
+          <input value="${esc(it.reading_unit||'')}" data-unit placeholder="unit e.g. °C" style="width:96px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px;${it.requires_reading?'':'display:none'}">
+          <input value="${esc(codes)}" data-codes placeholder="multi codes: IH1,IH2,IH3" style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:5px 8px;color:var(--text);font-size:12px"></div>
+      </div>`);
+        r.querySelector('[data-no]').oninput=e=>it.item_no=e.target.value;
+        r.querySelector('[data-desc]').oninput=e=>it.description=e.target.value;
+        r.querySelector('[data-sec]').oninput=e=>it.section=e.target.value;
+        r.querySelector('[data-rr]').onchange=e=>{ it.requires_reading=e.target.checked; r.querySelector('[data-unit]').style.display=e.target.checked?'':'none'; };
+        r.querySelector('[data-unit]').oninput=e=>it.reading_unit=e.target.value;
+        r.querySelector('[data-codes]').oninput=e=>{ const cs=e.target.value.split(',').map(s=>s.trim()).filter(Boolean); it.readings=cs.map(c=>({code:c,unit:it.reading_unit||null})); };
+        r.querySelector('[data-del]').onclick=()=>{ items.splice(i,1); if(!items.length) items.push({item_no:'1',description:'',requires_reading:false,reading_unit:''}); draw(); };
+        rows.appendChild(r); });
+    };
+    draw();
+    const addRow=el(`<button class="btn ghost sm" style="margin-top:10px">${icon('plus')} Add item</button>`);
+    addRow.onclick=()=>{ items.push({item_no:String(items.length+1),description:'',requires_reading:false,reading_unit:''}); draw(); };
+    card.appendChild(addRow);
+    const save=el(`<button class="btn" style="margin-top:14px;width:100%">${icon('save')} Save checklist</button>`);
+    const err=el(`<div style="color:var(--rose);font-size:13px;margin-top:8px"></div>`);
+    save.onclick=async()=>{
+      const t=card.querySelector('#bt').value.trim(), f=card.querySelector('#bf').value.trim();
+      if(!t||!f){ err.textContent='Enter an equipment type and frequency label.'; return; }
+      const clean=items.filter(it=>(it.description||'').trim());
+      if(!clean.length){ err.textContent='Add at least one item with a description.'; return; }
+      save.disabled=true; save.textContent='Saving…';
+      try{ await API.call('/checklists/templates',{method:'PUT',body:{equipment_type:t,frequency:f,items:clean.map(it=>({item_no:it.item_no||'',section:it.section||null,description:it.description,requires_reading:!!it.requires_reading||!!(it.readings&&it.readings.length),reading_unit:it.reading_unit||null,readings:(it.readings||[]).map(x=>({code:x.code,unit:x.unit||it.reading_unit||null}))}))}});
+        toast('Checklist saved'); App.cache.meta=null; renderTab(App.cache.readOnly);
+      }catch(e){ save.disabled=false; save.innerHTML=icon('save')+' Save checklist'; err.textContent=e.message; }
+    };
+    card.appendChild(save); card.appendChild(err); host.appendChild(card);
+  }
+}
+
+/* ============ users (admin) ============ */
+async function portalUsers(b){
+  b.innerHTML='';
+  b.appendChild(el(`<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:14px"><div><div class="eyebrow">User management</div><div class="muted" style="font-size:14px;margin-top:4px">Create and manage who can access the system.</div></div><button class="btn sm" id="addU">${icon('plus')} Add user</button></div>`));
+  $('addU').onclick=addUserModal;
+  let users=[]; try{ users=await API.call('/users'); }catch(e){ b.appendChild(el(`<div class="muted">${esc(e.message)}</div>`)); return; }
+  const card=el(`<div class="card" style="overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Contact</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody></tbody></table></div></div>`);
+  const tb=card.querySelector('tbody');
+  users.forEach(u=>{ const isMe = App.user && String(u.id)===String(App.user.id);
+    const tr=el(`<tr>
+      <td><div style="font-weight:600">${esc(u.name)}${isMe?' <span class="muted2" style="font-size:11px">(you)</span>':''}</div>${u.position?`<div class="muted2" style="font-size:11px">${esc(u.position)}</div>`:''}${u.ic?`<div class="muted2 mono" style="font-size:11px">IC ${esc(u.ic)}</div>`:''}</td>
+      <td class="muted" style="font-size:13px">${u.email?`<div class="mono">${esc(u.email)}</div>`:'<span class="muted2">no login</span>'}${u.phone?`<div>${esc(u.phone)}</div>`:''}</td>
+      <td></td><td></td><td style="text-align:right"></td></tr>`);
+    const roleSel=el(`<select ${isMe?'disabled':''}>${['admin','engineer','manager','customer','leadership'].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join('')}</select>`);
+    roleSel.style.cssText='background:var(--bg);border:1px solid var(--line2);border-radius:8px;padding:5px 8px;color:var(--text);font-size:13px'+(isMe?';opacity:.6':'');
+    let prev=u.role;
+    roleSel.onchange=async()=>{
+      const newRole=roleSel.value;
+      if(!confirm(`Change ${u.name}'s role from "${prev}" to "${newRole}"?`)){ roleSel.value=prev; return; }
+      try{ await API.call('/users/'+u.id,{method:'PATCH',body:{role:newRole}}); prev=newRole; toast('Role updated'); }
+      catch(e){ roleSel.value=prev; toast(e.message); }
+    };
+    tr.children[2].appendChild(roleSel);
+    const stBtn=el(`<button class="pill" ${isMe?'disabled':''} style="color:var(--${u.is_active?'emerald':'muted2'});border:1px solid var(--line2)${isMe?';opacity:.6':''}">${u.is_active?'Active':'Disabled'}</button>`);
+    if(!isMe) stBtn.onclick=async()=>{ if(!confirm(`${u.is_active?'Disable':'Enable'} ${u.name}?`)) return; try{ const r=await API.call('/users/'+u.id,{method:'PATCH',body:{is_active:!u.is_active}}); u.is_active=r.is_active; stBtn.textContent=u.is_active?'Active':'Disabled'; stBtn.style.color=`var(--${u.is_active?'emerald':'muted2'})`; toast('Updated'); }catch(e){ toast(e.message); } };
+    tr.children[3].appendChild(stBtn);
+    const rp=el(`<button class="btn ghost sm">Reset password</button>`); rp.onclick=()=>resetPwModal(u); tr.children[4].appendChild(rp);
+    tb.appendChild(tr); });
+  b.appendChild(card);
+}
+function addUserModal(){
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:22px;width:100%;max-width:460px;max-height:92vh;overflow:auto">
+    <div class="row" style="justify-content:space-between;margin-bottom:4px"><b>Add user / personnel</b><button class="muted" id="cx" style="font-size:18px">${icon('x')}</button></div>
+    <div class="muted2" style="font-size:12px;margin-bottom:14px">Email &amp; password are the login. Other fields are optional.</div>
+    <div class="grid">
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>First name</label><input id="u_first"></div>
+        <div class="field"><label>Last name</label><input id="u_last"></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>Phone number</label><input id="u_phone" placeholder="+65 …"></div>
+        <div class="field"><label>IC / ID no.</label><input id="u_ic"></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="field"><label>Position / role</label><select id="u_role">${['engineer','manager','customer','leadership','admin'].map(r=>`<option>${r}</option>`).join('')}</select></div>
+        <div class="field"><label>Job title (optional)</label><input id="u_pos" placeholder="e.g. Senior Technician"></div>
+      </div>
+      <div class="field"><label>Email (login)</label><input id="u_email" type="email"></div>
+      <div class="field"><label>Password (login)</label><input id="u_pw" type="text" placeholder="min 6 chars"></div>
+      <div class="field"><label>Remark</label><input id="u_remark" placeholder="Notes about this person"></div>
+    </div>
+    <button class="btn" style="width:100%;margin-top:16px" id="u_go">Create</button>
+    <div id="u_err" style="color:var(--rose);font-size:13px;margin-top:8px"></div></div></div>`);
+  m.querySelector('#cx').onclick=()=>m.remove(); m.onclick=ev=>{if(ev.target===m)m.remove();};
+  m.querySelector('#u_go').onclick=async()=>{
+    const g=id=>m.querySelector(id).value.trim();
+    const body={first_name:g('#u_first'),last_name:g('#u_last')||null,phone:g('#u_phone')||null,ic:g('#u_ic')||null,
+      role:m.querySelector('#u_role').value, position:g('#u_pos')||null, email:g('#u_email'), remark:g('#u_remark')||null, password:g('#u_pw')};
+    if(!body.first_name){ m.querySelector('#u_err').textContent='First name is required.'; return; }
+    if(!body.email){ m.querySelector('#u_err').textContent='Email is required (it is the login).'; return; }
+    if(body.password.length<6){ m.querySelector('#u_err').textContent='Password must be at least 6 characters.'; return; }
+    const btn=m.querySelector('#u_go'); btn.disabled=true; btn.textContent='Creating…';
+    try{ await API.call('/users',{method:'POST',body}); m.remove(); toast('User created'); renderTab(App.cache.readOnly); }
+    catch(e){ btn.disabled=false; btn.textContent='Create'; m.querySelector('#u_err').textContent=e.message; }
+  };
+  document.body.appendChild(m);
+}
+function resetPwModal(u){
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:22px;width:100%;max-width:380px">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px"><b>Reset password</b><button class="muted" id="cx" style="font-size:18px">${icon('x')}</button></div>
+    <div class="muted2" style="font-size:13px;margin-bottom:12px">for ${esc(u.name)} (${esc(u.email)})</div>
+    <div class="field"><label>New password</label><input id="rp" type="text" placeholder="min 6 chars"></div>
+    <button class="btn" style="width:100%;margin-top:14px" id="rp_go">Set password</button>
+    <div id="rp_err" style="color:var(--rose);font-size:13px;margin-top:8px"></div></div></div>`);
+  m.querySelector('#cx').onclick=()=>m.remove(); m.onclick=ev=>{if(ev.target===m)m.remove();};
+  m.querySelector('#rp_go').onclick=async()=>{
+    const np=m.querySelector('#rp').value; if(np.length<6){ m.querySelector('#rp_err').textContent='At least 6 characters.'; return; }
+    try{ await API.call('/users/'+u.id+'/reset-password',{method:'POST',body:{new_password:np}}); m.remove(); toast('Password reset'); }
+    catch(e){ m.querySelector('#rp_err').textContent=e.message; }
+  };
+  document.body.appendChild(m);
+}
+
+/* ============ settings ============ */
+function portalSettings(b){
+  b.innerHTML='';
+  b.appendChild(el(`<div class="eyebrow">Settings</div>`));
+  b.appendChild(el(`<div class="card" style="padding:18px;margin-top:12px"><div class="eyebrow" style="margin-bottom:10px">Profile</div>
+    <div class="grid" style="gap:8px;font-size:14px">
+      <div class="row" style="justify-content:space-between"><span class="muted">Name</span><span>${esc(App.user.name)}</span></div>
+      <div class="row" style="justify-content:space-between"><span class="muted">Email</span><span class="mono">${esc(App.user.email)}</span></div>
+      <div class="row" style="justify-content:space-between"><span class="muted">Role</span><span class="pill" style="border:1px solid var(--line2)">${esc(App.user.role)}</span></div></div></div>`));
+  const card=el(`<div class="card" style="padding:18px;margin-top:16px"><div class="eyebrow" style="margin-bottom:12px">Change password</div>
+    <div class="grid" style="gap:12px;max-width:360px">
+      <div class="field"><label>Current password</label><input id="cp" type="password"></div>
+      <div class="field"><label>New password</label><input id="np" type="password"></div>
+      <button class="btn" id="cpBtn">Update password</button>
+      <div id="cpMsg" style="font-size:13px;min-height:16px"></div></div></div>`);
+  b.appendChild(card);
+  card.querySelector('#cpBtn').onclick=async()=>{
+    const cp=card.querySelector('#cp').value, np=card.querySelector('#np').value, msg=card.querySelector('#cpMsg');
+    if(np.length<6){ msg.style.color='var(--rose)'; msg.textContent='New password must be at least 6 characters.'; return; }
+    try{ await API.call('/auth/change-password',{method:'POST',body:{current_password:cp,new_password:np}}); msg.style.color='var(--emerald)'; msg.textContent='Password updated.'; card.querySelector('#cp').value=''; card.querySelector('#np').value=''; }
+    catch(e){ msg.style.color='var(--rose)'; msg.textContent=e.message; }
+  };
+}
+async function engReports(){
+  const shell=engShell(null,false); render(shell); const b=$('engbody');
+  b.appendChild(backBar('My reports',()=>showEngineer()));
+  b.appendChild(el(`<div id="erlist"><div class="muted2" style="font-size:13px;padding:10px">Loading…</div></div>`));
+  let recs=[]; try{ recs=await API.call('/records'); }catch(e){ $('erlist').innerHTML=`<div class="muted">${esc(e.message)}</div>`; return; }
+  const eqById={}; (App.cache.equip||[]).forEach(e=>eqById[e.id]=e);
+  const host=$('erlist'); host.innerHTML='';
+  if(!recs.length){ host.appendChild(el(`<div class="muted" style="font-size:13px;padding:16px;text-align:center">You haven't submitted any reports yet.</div>`)); return; }
+  recs.forEach(r=>{ const e=eqById[r.equipment_id]||{}; const ap=APPROVAL_META[r.approval]||['—','muted2'];
+    const it=el(`<div class="item" style="margin-bottom:8px">
+      <div class="row" style="justify-content:space-between;gap:8px"><span class="mono" style="font-size:12px;color:var(--teal)">${esc(e.tag||'—')}</span><span class="pill" style="color:var(--${ap[1]});border:1px solid var(--${ap[1]});font-size:11px">${ap[0]}</span></div>
+      <div style="font-size:13px;margin-top:4px">${esc(e.name||'')} · ${esc(r.frequency)} · ${fmtDate(r.performed_at)}</div>
+      ${r.approval==='rejected'&&r.rejected_note?`<div style="font-size:11px;color:var(--rose);margin-top:6px">Sent back: ${esc(r.rejected_note)}</div>`:''}
+      <button class="btn ghost sm" style="margin-top:10px;width:100%">${icon('doc')} View report</button></div>`);
+    it.querySelector('button').onclick=()=>reportModal(r,e);
+    host.appendChild(it); });
+}
+function engSettings(){
+  const shell=engShell(null,false); render(shell); const b=$('engbody');
+  b.appendChild(backBar('Settings',()=>showEngineer()));
+  b.appendChild(el(`<div class="item" style="padding:14px"><div class="eyebrow" style="margin-bottom:8px">Profile</div>
+    <div style="font-size:14px"><div>${esc(App.user.name)}</div><div class="mono muted2" style="font-size:12px">${esc(App.user.email)}</div><div class="muted2" style="font-size:12px;margin-top:4px">Role: ${esc(App.user.role)}</div></div></div>`));
+  const card=el(`<div class="item" style="padding:14px;margin-top:12px"><div class="eyebrow" style="margin-bottom:10px">Change password</div>
+    <div class="field" style="margin-bottom:10px"><label>Current</label><input id="ecp" type="password"></div>
+    <div class="field" style="margin-bottom:12px"><label>New</label><input id="enp" type="password"></div>
+    <button class="btn" id="ecpBtn" style="width:100%">Update password</button>
+    <div id="ecpMsg" style="font-size:12px;margin-top:8px;min-height:14px"></div></div>`);
+  b.appendChild(card);
+  card.querySelector('#ecpBtn').onclick=async()=>{
+    const cp=card.querySelector('#ecp').value, np=card.querySelector('#enp').value, msg=card.querySelector('#ecpMsg');
+    if(np.length<6){ msg.style.color='var(--rose)'; msg.textContent='At least 6 characters.'; return; }
+    try{ await API.call('/auth/change-password',{method:'POST',body:{current_password:cp,new_password:np}}); msg.style.color='var(--emerald)'; msg.textContent='Password updated.'; card.querySelector('#ecp').value=''; card.querySelector('#enp').value=''; }
+    catch(e){ msg.style.color='var(--rose)'; msg.textContent=e.message; }
+  };
+  const out=el(`<button class="btn ghost" style="width:100%;margin-top:14px">${icon('out')} Sign out</button>`); out.onclick=logout; b.appendChild(out);
+}
+
+/* ============ checklist report (view + print) ============ */
+function reportSheet(r,e){
+  const cell='border:1px solid #cbd5e1;padding:5px 8px;vertical-align:top';
+  const head='border:1px solid #cbd5e1;padding:5px 8px;font-weight:700;background:#f1f5f9';
+  const byItem={}; const general=[];
+  (r.media||[]).forEach(m=>{ if(m.item_no){ (byItem[m.item_no]=byItem[m.item_no]||[]).push(m); } else general.push(m); });
+  let curSec=null;
+  const rows=r.results.map(i=>{
+    let row='';
+    if(i.section && i.section!==curSec){ curSec=i.section; row+=`<tr><td style="${head}" colspan="5">${esc(i.section)}</td></tr>`; }
+    const readingCell = (i.readings&&i.readings.length)
+      ? i.readings.map(rd=>`${esc(rd.code)}: ${esc(rd.value||'—')}${rd.unit?' '+esc(rd.unit):''}`).join('<br>')
+      : `${esc(i.reading_value||'')}${i.reading_value&&i.reading_unit?' '+esc(i.reading_unit):''}`;
+    row+=`<tr>
+    <td style="${cell};text-align:center">${esc(i.item_no)}</td>
+    <td style="${cell}">${esc(i.description)}</td>
+    <td style="${cell};text-align:center;font-weight:700">${esc((i.status||'').toUpperCase())}</td>
+    <td style="${cell}">${readingCell}</td>
+    <td style="${cell}">${esc(i.remarks||'')}</td></tr>`;
+    const mm=byItem[i.item_no]||[]; const ph=mm.filter(x=>x.kind==='photo'); const vd=mm.filter(x=>x.kind==='video');
+    if(ph.length||vd.length){ row+=`<tr><td style="${cell}"></td><td style="${cell}" colspan="4"><div style="font-size:11px;color:#64748b;margin-bottom:4px">Attachments for item ${esc(i.item_no)}:</div>${ph.map(x=>`<img src="${x.url}" style="width:110px;height:110px;object-fit:cover;border:1px solid #cbd5e1;border-radius:4px;margin:3px">`).join('')}${vd.length?`<div style="font-size:11px;color:#64748b">${vd.length} video(s) attached</div>`:''}</td></tr>`; }
+    return row;
+  }).join('');
+  const sign=(label,name,sig,note,at)=>`<td style="${cell};width:50%"><div style="font-size:11px;color:#64748b">${label}</div><div style="font-weight:700;min-height:18px">${esc(name||'—')}${sig?' · <span style="font-style:italic">'+esc(sig)+'</span>':''}</div>${note?`<div style="font-size:11px;color:#475569">Note: ${esc(note)}</div>`:''}${at?`<div style="font-size:11px;color:#64748b">${fmtDate(at)}</div>`:''}</td>`;
+  return `<div style="background:#fff;color:#0b1220;padding:22px;border-radius:8px;font-size:13px">
+    <div style="text-align:center;font-weight:800;font-size:15px;margin-bottom:4px">${esc((e.type||'EQUIPMENT').toUpperCase())} PREVENTIVE MAINTENANCE CHECKLIST</div>
+    <div style="text-align:center;color:#64748b;font-size:12px;margin-bottom:14px">${esc(FREQ_LABEL[r.frequency]||r.frequency)} · ${esc(r.site_name||'')}</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:12px">
+      <tr><td style="${head};width:22%">Equipment Tag</td><td style="${cell}">${esc(e.tag||'')}</td><td style="${head};width:18%">Site</td><td style="${cell}">${esc(r.site_name||'')}</td></tr>
+      <tr><td style="${head}">Equipment</td><td style="${cell}">${esc(e.name||'')}</td><td style="${head}">Location</td><td style="${cell}">${esc(e.location||'')}</td></tr>
+      <tr><td style="${head}">Frequency</td><td style="${cell}">${esc(r.frequency)}</td><td style="${head}">Date</td><td style="${cell}">${fmtDate(r.performed_at)}</td></tr>
+      <tr><td style="${head}">Serviced by</td><td style="${cell}">${esc(r.serviced_by||'')}</td><td style="${head}">Overall</td><td style="${cell}">${esc(r.overall_status)}</td></tr>
+    </table>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="${head};width:8%">Sr.No</th><th style="${head};text-align:left">Description</th><th style="${head};width:11%">Status</th><th style="${head};width:18%">Reading / Value</th><th style="${head};width:24%">Remarks</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    ${r.note?`<div style="margin-top:10px;font-size:12px"><b>Note:</b> ${esc(r.note)}</div>`:''}
+    ${general.some(x=>x.kind==='photo')?`<div style="margin-top:14px"><div style="font-weight:700;margin-bottom:6px">General photos</div><div style="display:flex;flex-wrap:wrap;gap:8px">${general.filter(x=>x.kind==='photo').map(x=>`<img src="${x.url}" style="width:150px;height:150px;object-fit:cover;border:1px solid #cbd5e1;border-radius:4px">`).join('')}</div></div>`:''}
+    ${general.some(x=>x.kind==='video')?`<div style="margin-top:8px;font-size:12px;color:#64748b">${general.filter(x=>x.kind==='video').length} general video(s) attached — viewable on screen.</div>`:''}
+    ${r.approval==='rejected'&&r.rejected_note?`<div style="margin-top:10px;font-size:12px;color:#b91c1c"><b>Sent back:</b> ${esc(r.rejected_note)}${r.rejected_by?' — '+esc(r.rejected_by):''}</div>`:''}
+    <div style="font-weight:700;margin-top:16px;margin-bottom:6px">Completion &amp; Verification</div>
+    <table style="width:100%;border-collapse:collapse">
+      <tr>${sign('Checked by (Technician)',r.checked_by,r.signature,null,r.performed_at)}${sign('Manager approval',r.manager_name,r.manager_signature,r.manager_note,r.manager_signed_at)}</tr>
+      <tr>${sign('Customer sign-off',r.customer_name,r.customer_signature,r.customer_note,r.customer_signed_at)}<td style="${cell}"><div style="font-size:11px;color:#64748b">Status</div><div style="font-weight:700">${esc(r.approval)}</div></td></tr>
+    </table>
+    <div style="text-align:right;color:#94a3b8;font-size:10px;margin-top:10px">Flowea CMMS</div>
+  </div>`;
+}
+function reportFilename(r,e){
+  const d=new Date(r.created_at||r.performed_at); const pad=n=>String(n).padStart(2,'0');
+  const stamp=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  const site=(r.site_name||'site').replace(/[^a-z0-9]+/gi,'-');
+  return `${stamp}_${site}_${(e.tag||'report')}`;
+}
+function reportModal(r,e){
+  const sheet=reportSheet(r,e);
+  const videos=(r.media||[]).filter(x=>x.kind==='video');
+  const vidHtml=videos.length?`<div style="margin-top:14px"><div class="eyebrow" style="margin-bottom:8px">Video attachments</div>${videos.map(v=>`<video src="${v.url}" controls style="width:100%;border-radius:10px;margin-bottom:8px;background:#000"></video>`).join('')}</div>`:'';
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:16px;width:100%;max-width:760px;max-height:92vh;overflow:auto">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px"><b>Checklist report</b>
+      <div class="row" style="gap:8px">${r.report_file?`<button class="btn ghost sm" id="arch">${icon('save')} Archived copy</button>`:''}<button class="btn sm" id="prt">${icon('print')} Print / Save PDF</button><button class="muted" id="cl" style="font-size:18px">${icon('x')}</button></div></div>
+    ${r.report_file?`<div class="muted2" style="font-size:11px;margin:-6px 0 10px" class="mono">Auto-saved on server: ${esc(r.report_file)}</div>`:''}
+    <div>${sheet}</div>${vidHtml}</div></div>`);
+  m.querySelector('#cl').onclick=()=>m.remove(); m.onclick=ev=>{ if(ev.target===m) m.remove(); };
+  m.querySelector('#prt').onclick=()=>printReport(sheet,reportFilename(r,e));
+  const arch=m.querySelector('#arch'); if(arch) arch.onclick=()=>downloadArchived(r);
+  document.body.appendChild(m);
+}
+function printReport(sheetHTML,title){
+  const w=window.open('','_blank');
+  if(!w){ toast('Allow pop-ups to print/save PDF'); return; }
+  w.document.write(`<html><head><title>${esc(title)}</title><meta charset="utf-8"></head><body style="margin:18px;font-family:Arial,Helvetica,sans-serif">${sheetHTML}<script>window.onload=function(){setTimeout(function(){window.print();},250);}<\/script></body></html>`);
+  w.document.close();
+}
+async function downloadArchived(r){
+  try{
+    const res=await fetch('/records/'+r.id+'/file',{headers:{'Authorization':'Bearer '+API.token}});
+    if(!res.ok) throw new Error('Not available');
+    const blob=await res.blob(); const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=(r.report_file||'report.html').split('/').pop(); a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){ toast('Could not download archived file'); }
+}
+function importChecklistModal(){
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:22px;width:100%;max-width:470px">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Import checklists from Excel / CSV</b><button class="muted" id="cx" style="font-size:18px">${icon('x')}</button></div>
+    <div class="muted2" style="font-size:13px;margin-bottom:12px">One row per item. Columns: <span class="mono">equipment_type, frequency, section, item_no, description, reading_code, reading_unit, requires_reading</span>.<br>• Rows group into one checklist per <b>type + frequency</b> (so 1M and 12M lines can live in one sheet).<br>• <b>Multiple readings</b> (e.g. IH1/IH2/IH3): put the first on the item row, then add rows with a <b>blank description</b> and just the next <span class="mono">reading_code</span>. Download the template to see the exact layout.</div>
+    <button class="btn ghost sm" id="tpl" style="width:100%;margin-bottom:12px">${icon('save')} Download .xlsx template</button>
+    <div class="field"><label>Choose file (.xlsx or .csv)</label><input id="impf" type="file" accept=".xlsx,.csv" style="width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:9px;color:var(--text)"></div>
+    <button class="btn" id="impgo" style="width:100%;margin-top:14px">Upload &amp; import</button>
+    <div id="impmsg" style="font-size:13px;margin-top:10px"></div></div></div>`);
+  m.querySelector('#cx').onclick=()=>m.remove(); m.onclick=ev=>{if(ev.target===m)m.remove();};
+  m.querySelector('#tpl').onclick=async()=>{
+    try{ const res=await fetch('/checklists/import-template',{headers:{'Authorization':'Bearer '+API.token}}); const blob=await res.blob();
+      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='flowea_checklist_template.xlsx'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch{ toast('Could not download template'); }
+  };
+  m.querySelector('#impgo').onclick=async()=>{
+    const f=m.querySelector('#impf').files[0]; const msg=m.querySelector('#impmsg');
+    if(!f){ msg.style.color='var(--rose)'; msg.textContent='Choose a file first.'; return; }
+    const btn=m.querySelector('#impgo'); btn.disabled=true; btn.textContent='Importing…';
+    try{
+      const fd=new FormData(); fd.append('file',f);
+      const res=await fetch('/checklists/import',{method:'POST',headers:{'Authorization':'Bearer '+API.token},body:fd});
+      const d=await res.json(); if(!res.ok) throw new Error(d.detail||'Import failed');
+      msg.style.color='var(--emerald)'; msg.innerHTML=`Imported ${d.checklists} checklist(s), ${d.items} item(s).`+(d.errors&&d.errors.length?` <span style="color:var(--amber)">${d.errors.length} skipped.</span>`:'');
+      App.cache.meta=null;
+      if(d.errors&&d.errors.length) msg.innerHTML+='<div class="mono muted2" style="font-size:11px;margin-top:6px">'+d.errors.slice(0,5).map(esc).join('<br>')+'</div>';
+      btn.disabled=false; btn.textContent='Upload & import';
+      renderTab(App.cache.readOnly);
+    }catch(e){ btn.disabled=false; btn.textContent='Upload & import'; msg.style.color='var(--rose)'; msg.textContent=e.message; }
+  };
+  document.body.appendChild(m);
+}
+function importEquipmentModal(){
+  const m=el(`<div class="modal-bg"><div class="card" style="padding:22px;width:100%;max-width:460px">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><b>Import equipment from Excel / CSV</b><button class="muted" id="cx" style="font-size:18px">${icon('x')}</button></div>
+    <div class="muted2" style="font-size:13px;margin-bottom:12px">Columns: <span class="mono">name, tag, type, location, site_name, system, cooling_capacity, unit_type, frequency</span>. Blank tag = auto-generated.</div>
+    <button class="btn ghost sm" id="tpl" style="width:100%;margin-bottom:12px">${icon('save')} Download .xlsx template</button>
+    <div class="field"><label>Choose file (.xlsx or .csv)</label><input id="impf" type="file" accept=".xlsx,.csv" style="width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:9px;padding:9px;color:var(--text)"></div>
+    <button class="btn" id="impgo" style="width:100%;margin-top:14px">Upload &amp; import</button>
+    <div id="impmsg" style="font-size:13px;margin-top:10px"></div></div></div>`);
+  m.querySelector('#cx').onclick=()=>m.remove(); m.onclick=ev=>{if(ev.target===m)m.remove();};
+  m.querySelector('#tpl').onclick=async()=>{
+    try{ const res=await fetch('/equipment/import-template',{headers:{'Authorization':'Bearer '+API.token}}); const blob=await res.blob();
+      const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='flowea_equipment_template.xlsx'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch{ toast('Could not download template'); }
+  };
+  m.querySelector('#impgo').onclick=async()=>{
+    const f=m.querySelector('#impf').files[0]; const msg=m.querySelector('#impmsg');
+    if(!f){ msg.style.color='var(--rose)'; msg.textContent='Choose a file first.'; return; }
+    const btn=m.querySelector('#impgo'); btn.disabled=true; btn.textContent='Importing…';
+    try{
+      const fd=new FormData(); fd.append('file',f);
+      const res=await fetch('/equipment/import',{method:'POST',headers:{'Authorization':'Bearer '+API.token},body:fd});
+      const d=await res.json(); if(!res.ok) throw new Error(d.detail||'Import failed');
+      msg.style.color='var(--emerald)'; msg.innerHTML=`Imported ${d.created} item(s).`+(d.errors&&d.errors.length?` <span style="color:var(--amber)">${d.errors.length} skipped.</span>`:'');
+      App.cache.meta=null; const [summary,equip]=await Promise.all([API.call('/dashboard/summary'),API.call('/equipment')]); App.cache.summary=summary; App.cache.equip=equip;
+      btn.disabled=false; btn.textContent='Upload & import';
+      if(d.errors&&d.errors.length) msg.innerHTML+='<div class="mono muted2" style="font-size:11px;margin-top:6px">'+d.errors.slice(0,5).map(esc).join('<br>')+'</div>';
+    }catch(e){ btn.disabled=false; btn.textContent='Upload & import'; msg.style.color='var(--rose)'; msg.textContent=e.message; }
+  };
+  document.body.appendChild(m);
+}
+
+
+/* ============ image resize (keeps attachments small) ============ */
+function resizeImage(file, maxDim, quality){
+  return new Promise((res,rej)=>{
+    const rd=new FileReader();
+    rd.onerror=()=>rej(); rd.onload=()=>{ const img=new Image();
+      img.onerror=()=>rej(); img.onload=()=>{
+        let{width:w,height:h}=img; if(w>h && w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; } else if(h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+        res(cv.toDataURL('image/jpeg',quality||0.7)); };
+      img.src=rd.result; };
+    rd.readAsDataURL(file);
+  });
+}
+
+/* ============ pseudo-QR (visual label) ============ */
+function drawQR(canvas,token,size){
+  const n=25, ctx=canvas.getContext('2d'), s=size/n;
+  let h=2166136261; for(let i=0;i<token.length;i++){ h^=token.charCodeAt(i); h=Math.imul(h,16777619); }
+  let a=h>>>0; const rng=()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size); ctx.fillStyle='#0b1220';
+  const g=[]; for(let r=0;r<n;r++){ g[r]=[]; for(let c=0;c<n;c++) g[r][c]=rng()>0.52; }
+  const finder=(R,C)=>{ for(let i=-1;i<8;i++)for(let j=-1;j<8;j++){ const rr=R+i,cc=C+j; if(rr<0||cc<0||rr>=n||cc>=n) continue; const edge=i===0||i===6||j===0||j===6, core=i>=2&&i<=4&&j>=2&&j<=4; g[rr][cc]=edge||core; } };
+  finder(0,0); finder(0,n-7); finder(n-7,0);
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++) if(g[r][c]) ctx.fillRect(Math.floor(c*s),Math.floor(r*s),Math.ceil(s),Math.ceil(s));
+}
+</script>
+</body>
+</html>
