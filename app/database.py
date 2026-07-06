@@ -1,4 +1,5 @@
 """Async SQLAlchemy engine, session factory and declarative Base."""
+import os
 from collections.abc import AsyncGenerator
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
@@ -8,6 +9,10 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import get_settings
 
 settings = get_settings()
+
+# asyncpg + uvloop + SSL is broken inside Vercel's sandbox, so on serverless we force
+# the psycopg (libpq) driver, which connects a different way and works there.
+_ON_SERVERLESS = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
 
 
 def _normalize_db_url(url: str):
@@ -19,6 +24,8 @@ def _normalize_db_url(url: str):
     Non-Postgres URLs (e.g. sqlite) are returned unchanged.
     """
     driver = (settings.db_driver or "asyncpg").strip().lower()
+    if _ON_SERVERLESS:
+        driver = "psycopg"
     connect_args: dict = {}
 
     # strip any driver already present, normalise to bare postgresql://
@@ -30,7 +37,7 @@ def _normalize_db_url(url: str):
         url = "postgresql://" + url[len("postgres://"):]
 
     if not url.startswith("postgresql://"):
-        return url, connect_args  # sqlite/other — leave exactly as-is
+        return url, connect_args, driver  # sqlite/other — leave exactly as-is
 
     parts = urlsplit(url)
     query = dict(parse_qsl(parts.query))
@@ -48,10 +55,10 @@ def _normalize_db_url(url: str):
             connect_args["ssl"] = True
 
     url = urlunsplit((scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
-    return url, connect_args
+    return url, connect_args, driver
 
 
-_db_url, _connect_args = _normalize_db_url(settings.database_url)
+_db_url, _connect_args, ACTIVE_DRIVER = _normalize_db_url(settings.database_url)
 engine = create_async_engine(_db_url, echo=False, pool_pre_ping=True, connect_args=_connect_args)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 

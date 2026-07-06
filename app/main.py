@@ -49,7 +49,8 @@ for r in (auth.router, equipment.router, checklists.router, records.router, dash
 
 @app.get("/health", tags=["meta"])
 async def health():
-    return {"status": "ok"}
+    from app.database import ACTIVE_DRIVER
+    return {"status": "ok", "driver": ACTIVE_DRIVER, "serverless": IS_SERVERLESS}
 
 
 @app.post("/admin/init-db", tags=["meta"])
