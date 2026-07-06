@@ -12,3 +12,4 @@ python-dateutil==2.9.0.post0
 boto3==1.35.90
 openpyxl==3.1.5
 psycopg[binary]==3.2.3
+aiosqlite==0.20.0

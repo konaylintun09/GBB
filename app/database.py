@@ -58,7 +58,16 @@ def _normalize_db_url(url: str):
     return url, connect_args, driver
 
 
-_db_url, _connect_args, ACTIVE_DRIVER = _normalize_db_url(settings.database_url)
+_raw_url = settings.database_url
+# On serverless with NO external database configured, fall back to a throwaway SQLite
+# file in /tmp so a demo works with zero setup. (Data resets when the function idles.)
+if _ON_SERVERLESS and (not os.environ.get("DATABASE_URL") or "@db:5432" in _raw_url):
+    _raw_url = "sqlite+aiosqlite:////tmp/flowea_demo.db"
+
+_db_url, _connect_args, ACTIVE_DRIVER = _normalize_db_url(_raw_url)
+IS_SQLITE = _db_url.startswith("sqlite")
+if IS_SQLITE:
+    ACTIVE_DRIVER = "sqlite"
 engine = create_async_engine(_db_url, echo=False, pool_pre_ping=True, connect_args=_connect_args)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 

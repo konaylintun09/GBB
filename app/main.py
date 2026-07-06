@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from app.config import get_settings
-from app.database import SessionLocal, init_db
+from app.database import IS_SQLITE, SessionLocal, init_db
 from app.routers import auth, checklists, dashboard, equipment, media, records, users
 
 settings = get_settings()
@@ -28,7 +28,9 @@ async def _setup_database():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not IS_SERVERLESS:
+    # Normal servers init at startup. On serverless we skip external-DB init (done via
+    # /admin/init-db), but the built-in SQLite demo DB is safe/needed to init here.
+    if not IS_SERVERLESS or IS_SQLITE:
         await _setup_database()
     yield
 
