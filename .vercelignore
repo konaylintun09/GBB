@@ -1,0 +1,7 @@
+.venv
+__pycache__
+*.pyc
+.env
+Dockerfile
+docker-compose.yml
+app/files_data/*.html
