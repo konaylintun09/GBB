@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Seed demo data on first boot (set false in production)
     seed_demo: bool = True
 
+    # One-time DB setup token for serverless hosts (used by POST /admin/init-db)
+    setup_token: str | None = None
+
     # Object storage for photos/videos (optional; presign endpoint is disabled if unset)
     s3_endpoint_url: str | None = None      # e.g. https://<account>.r2.cloudflarestorage.com
     s3_region: str = "auto"
