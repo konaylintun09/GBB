@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     # Seed demo data on first boot (set false in production)
     seed_demo: bool = True
 
+    # DB driver: 'asyncpg' (default, great for containers) or 'psycopg' (works on
+    # serverless/Vercel where uvloop+asyncpg+SSL fails). Set DB_DRIVER=psycopg on Vercel.
+    db_driver: str = "asyncpg"
+
     # One-time DB setup token for serverless hosts (used by POST /admin/init-db)
     setup_token: str | None = None
 

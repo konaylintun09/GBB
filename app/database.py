@@ -11,32 +11,43 @@ settings = get_settings()
 
 
 def _normalize_db_url(url: str):
-    """Accept any standard Postgres URL (Render/Railway/Neon/Heroku) and adapt it for asyncpg.
+    """Accept any standard Postgres URL and adapt it for the configured driver.
 
-    - postgres:// or postgresql:// -> postgresql+asyncpg://
-    - strip libpq-only params (sslmode, channel_binding) that asyncpg rejects,
-      turning an SSL requirement into asyncpg's connect_args={'ssl': True}.
+    Driver is chosen by settings.db_driver:
+      - 'asyncpg'  -> postgresql+asyncpg://  (libpq-only params stripped; SSL via connect_args)
+      - 'psycopg'  -> postgresql+psycopg://  (libpq handles sslmode/channel_binding natively)
+    Non-Postgres URLs (e.g. sqlite) are returned unchanged.
     """
+    driver = (settings.db_driver or "asyncpg").strip().lower()
     connect_args: dict = {}
-    if url.startswith("postgres://"):
-        url = "postgresql+asyncpg://" + url[len("postgres://"):]
-    elif url.startswith("postgresql://") and "+asyncpg" not in url:
-        url = "postgresql+asyncpg://" + url[len("postgresql://"):]
 
-    # only rewrite query params for postgres URLs; leave sqlite/others exactly as-is
-    if not url.startswith("postgresql+asyncpg://"):
-        return url, connect_args
+    # strip any driver already present, normalise to bare postgresql://
+    for pref in ("postgresql+asyncpg://", "postgresql+psycopg://", "postgresql+psycopg2://"):
+        if url.startswith(pref):
+            url = "postgresql://" + url[len(pref):]
+            break
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url[len("postgres://"):]
+
+    if not url.startswith("postgresql://"):
+        return url, connect_args  # sqlite/other — leave exactly as-is
 
     parts = urlsplit(url)
     query = dict(parse_qsl(parts.query))
-    ssl_needed = False
-    for key in ("sslmode", "ssl", "channel_binding"):
-        val = query.pop(key, None)
-        if val and str(val).lower() in ("require", "verify-ca", "verify-full", "prefer", "allow", "true", "1"):
-            ssl_needed = True
-    if ssl_needed:
-        connect_args["ssl"] = True
-    url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
+
+    if driver == "psycopg":
+        scheme = "postgresql+psycopg"          # libpq understands sslmode/channel_binding — keep them
+    else:
+        scheme = "postgresql+asyncpg"
+        ssl_needed = False
+        for key in ("sslmode", "ssl", "channel_binding"):
+            val = query.pop(key, None)          # asyncpg rejects these libpq params
+            if val and str(val).lower() in ("require", "verify-ca", "verify-full", "prefer", "allow", "true", "1"):
+                ssl_needed = True
+        if ssl_needed:
+            connect_args["ssl"] = True
+
+    url = urlunsplit((scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
     return url, connect_args
 
 
